@@ -1,3 +1,4 @@
+// Credits to Zechariah Tan for providing this declaration file
 declare module NodeJS {
     interface ProcessEnv {
 		readonly FIREBASE__SERVICE_ACCOUNT__PROJECT_ID: string;
