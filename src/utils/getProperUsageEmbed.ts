@@ -1,6 +1,6 @@
 import { MessageEmbed } from 'discord.js';
 
-import { MessageCommandBuilder } from '../app/MessageCommandBuilder';
+import { MessageCommandBuilder } from './MessageCommandBuilder';
 
 export const getProperUsageEmbed = (builder: MessageCommandBuilder) => {
 	return new MessageEmbed()
