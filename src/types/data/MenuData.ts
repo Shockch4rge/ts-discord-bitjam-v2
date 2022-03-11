@@ -1,4 +1,4 @@
-import { MenuHelper } from '../helpers/MenuHelper';
+import { MenuHelper } from '../../helpers/MenuHelper';
 
 export type MenuData = {
 	id: string;

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { SlashCommandHelper } from '../helpers/SlashCommandHelper';
+import { SlashCommandHelper } from '../../helpers/SlashCommandHelper';
 
 export type SlashCommandData = {
 	ephemeral?: boolean;

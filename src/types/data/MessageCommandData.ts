@@ -1,5 +1,5 @@
-import { MessageCommandBuilder } from '../app/MessageCommandBuilder';
-import { MessageCommandHelper } from '../helpers/MessageCommandHelper';
+import { MessageCommandHelper } from '../../helpers/MessageCommandHelper';
+import { MessageCommandBuilder } from '../../utils/MessageCommandBuilder';
 
 export type MessageCommandData = {
 	builder: MessageCommandBuilder;
@@ -11,4 +11,3 @@ export type MessageCommandData = {
 
 	execute: (helper: MessageCommandHelper) => Promise<void>;
 };
-
