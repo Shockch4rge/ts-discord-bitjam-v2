@@ -10,7 +10,7 @@ import { ButtonHelper } from './helpers/ButtonHelper';
 import { MenuHelper } from './helpers/MenuHelper';
 import { MessageCommandHelper } from './helpers/MessageCommandHelper';
 import { SlashCommandHelper } from './helpers/SlashCommandHelper';
-import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from './types';
+import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from './types/data';
 import { getProperUsageEmbed } from './utils/getProperUsageEmbed';
 import { MessageCommandValidator } from './utils/MessageCommandValidator';
 import { SlashCommandDeployer } from './utils/SlashCommandDeployer';
@@ -34,6 +34,9 @@ export default class Bot {
 		this.messageCommandFiles = new Collection();
 	}
 
+	/**
+	 * Initialise bot events and interaction/message commands
+	 */
 	public initialise() {
 		this.registerSlashCommandInteractions();
 		this.registerMessageCommands();
@@ -141,37 +144,44 @@ export default class Bot {
 
 		this.bot.on("messageCreate", async message => {
 			if (message.author.bot) return;
-
+			
 			const cache = await this.botCache.getGuildCache(message.guild!);
+			
+			/**
+			 * Doesn't type guard but good to assert anyway
+			 */
+			if (message.channel.isText()) {
+				await message.channel.sendTyping();
 
-			const options = message.content.split(/\s+/);
-			const command = this.messageCommandFiles.get(options[0].replace(cache.messagePrefix, ""));
+				const options = message.content.split(/\s+/);
+				const command = this.messageCommandFiles.get(options[0].replace(cache.messagePrefix, ""));
 
-			if (!command) return;
-			if (!MessageCommandValidator.validatePrefix(cache.messagePrefix, options[0])) return;
-			if (!MessageCommandValidator.validateOptions(command.builder.options, options.slice(1))) {
-				await message.reply({ embeds: [getProperUsageEmbed(command.builder)] });
-				return;
-			}
-
-			const helper = new MessageCommandHelper(message, cache);
-
-			if (command.guard) {
-				try {
-					await command.guard.test(helper);
-				} catch (err) {
-					await command.guard.fail(err as Error, helper);
-					await message.delete().catch(() => {});
+				if (!command) return;
+				if (!MessageCommandValidator.validatePrefix(cache.messagePrefix, options[0])) return;
+				if (!MessageCommandValidator.validateOptions(command.builder.options, options.slice(1))) {
+					await message.reply({ embeds: [getProperUsageEmbed(command.builder)] });
 					return;
 				}
-			}
 
-			try {
-				await command.execute(helper);
-				await message.delete().catch(() => {});
-			} catch (err) {
-				console.error(`❌ Failed to execute message command:\nName: ${command.builder.name}`);
-				console.error(`Error: "${(err as Error).message}"`);
+				const helper = new MessageCommandHelper(message, cache);
+
+				if (command.guard) {
+					try {
+						await command.guard.test(helper);
+					} catch (err) {
+						await command.guard.fail(err as Error, helper);
+						await message.delete().catch(() => {});
+						return;
+					}
+				}
+
+				try {
+					await command.execute(helper);
+					await message.delete().catch(() => {});
+				} catch (err) {
+					console.error(`❌ Failed to execute message command:\nName: ${command.builder.name}`);
+					console.error(`Error: "${(err as Error).message}"`);
+				}
 			}
 		});
 
