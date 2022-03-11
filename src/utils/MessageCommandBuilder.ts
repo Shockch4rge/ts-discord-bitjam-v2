@@ -1,4 +1,4 @@
-import { DiscordTypes, MessageCommandData } from '../types';
+import { DiscordTypes, MessageCommandData } from '../types/data';
 
 export class MessageCommandBuilder {
 	public name: string;
