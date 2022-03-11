@@ -1,7 +1,7 @@
-import { MessageCommandBuilder } from '../../app/MessageCommandBuilder';
-import { MessageCommandData } from '../../types';
+import { MessageCommandData } from '../../types/data';
+import { MessageCommandBuilder } from '../../utils/MessageCommandBuilder';
 
-module.exports = {
+const command: MessageCommandData = {
 	builder: new MessageCommandBuilder()
 		.setName("help")
 		.setDescription("Displays this help message.")
@@ -19,4 +19,6 @@ module.exports = {
 	execute: async helper => {
 		const [, target] = helper.options;
 	},
-} as MessageCommandData;
+};
+
+module.exports = command;

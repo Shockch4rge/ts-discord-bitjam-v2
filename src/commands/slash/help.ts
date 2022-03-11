@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { MessageCommandData, SlashCommandData } from '../../types';
+import { SlashCommandData } from '../../types/data';
 
 const command: SlashCommandData = {
 	builder: new SlashCommandBuilder()

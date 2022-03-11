@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js';
 
-import { MessageCommandBuilder } from '../../app/MessageCommandBuilder';
-import { MessageCommandData } from '../../types';
+import { MessageCommandData } from '../../types/data';
+import { MessageCommandBuilder } from '../../utils/MessageCommandBuilder';
 
 const command: MessageCommandData = {
 	builder: new MessageCommandBuilder().setName("ping").setDescription("Displays the latency of the bot."),

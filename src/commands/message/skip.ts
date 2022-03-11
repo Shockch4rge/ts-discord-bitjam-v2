@@ -4,12 +4,12 @@ import { SlashCommandData } from '../../types/data';
 
 const command: SlashCommandData = {
     builder: new SlashCommandBuilder()
-        .setName("ping")
-        .setDescription("Get the latency of the bot."),
+        .setName("skip")
+        .setDescription("Skips the current song, if there is one."),
     
     execute: async helper => {
-        await helper.respond("Hello, world!");
+        
     }
-};
+}
 
 module.exports = command;

@@ -1,4 +1,4 @@
-import { MessageCommandBuilder, MessageCommandOption } from '../app/MessageCommandBuilder';
+import { MessageCommandBuilder, MessageCommandOption } from './MessageCommandBuilder';
 
 export class MessageCommandValidator {
 	public static validateOptions(actual: MessageCommandOption[], received: string[]) {

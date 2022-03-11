@@ -1,7 +1,7 @@
 import { Message, MessageEmbed, WebhookMessageOptions } from 'discord.js';
 
 import GuildCache from '../app/GuildCache';
-import { DiscordTypes } from '../types';
+import { DiscordTypes } from '../types/data';
 
 export class MessageCommandHelper {
 	public readonly message: Message;
