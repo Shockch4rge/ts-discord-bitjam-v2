@@ -12,6 +12,7 @@ import { MessageCommandHelper } from './helpers/MessageCommandHelper';
 import { SlashCommandHelper } from './helpers/SlashCommandHelper';
 import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from './types/data';
 import { getProperUsageEmbed } from './utils/getProperUsageEmbed';
+import { logger } from './utils/logger';
 import { MessageCommandValidator } from './utils/MessageCommandValidator';
 import { SlashCommandDeployer } from './utils/SlashCommandDeployer';
 
@@ -62,7 +63,7 @@ export default class Bot {
 				console.log(`✅ Deployed slash commands in ${guild.name}`);
 			}
 
-			console.log(`${bot.user.tag} is ready!`);
+			logger.info(`${bot.user.tag} is ready!`);
 		});
 
 		this.bot.on("error", error => console.error(`❗ Bot Error: ${error.message}`));
@@ -74,11 +75,13 @@ export default class Bot {
 				const command = this.slashCommandFiles.get(interaction.commandName);
 				if (!command) return;
 
+				logger.info(`[SLASH]: ${command.builder.name}`);
+
 				await interaction
 					.deferReply({
 						ephemeral: command.ephemeral ?? true,
 					})
-					.catch(() => {});
+					.catch(err => logger.warn(`Could not defer reply: ${err.message}`));
 
 				const helper = new SlashCommandHelper(interaction, guildCache);
 
@@ -87,6 +90,7 @@ export default class Bot {
 						await command.guard.test(helper);
 					} catch (err) {
 						await command.guard.fail(err as Error, helper);
+						logger.info(`Slash command guard failed: ${(err as Error).message}`);
 						return;
 					}
 				}
@@ -94,16 +98,17 @@ export default class Bot {
 				try {
 					await command.execute(helper);
 				} catch (err) {
-					console.error(
-						`❌ Failed to execute command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
+					logger.error(
+						`Failed to execute command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
 					);
-					console.error(`Error: "${(err as Error).message}"`);
 				}
 			}
 
 			if (interaction.isButton()) {
 				const button = this.buttonFiles.get(interaction.customId);
 				if (!button) return;
+
+				logger.info(`[BUTTON]: ${button.id}`);
 
 				const helper = new ButtonHelper(interaction, guildCache);
 
@@ -115,15 +120,17 @@ export default class Bot {
 							content: `❌ There was an error executing this button!`,
 							components: [],
 						})
-						.catch(() => {});
-					console.error(`❌ Failed to execute button:\nName: ${button.id}`);
-					console.error(`Error: "${(err as Error).message}"`);
+						.catch(err =>
+							logger.error(`Failed to execute button:\nID: ${button.id} Error: ${err.message}`)
+						);
 				}
 			}
 
 			if (interaction.isSelectMenu()) {
 				const menu = this.menuFiles.get(interaction.customId);
 				if (!menu) return;
+
+				logger.info(`[MENU]: ${menu.id}`);
 
 				const helper = new MenuHelper(interaction, guildCache);
 
@@ -135,18 +142,18 @@ export default class Bot {
 							content: `❌ There was an error executing this menu!`,
 							components: [],
 						})
-						.catch(() => {});
-					console.error(`❌ Failed to execute menu:\nName: ${menu.id}`);
-					console.error(`Error: "${(err as Error).message}"`);
+						.catch(err =>
+							logger.error(`Could execute menu:\nID: ${menu.id} Error: ${err.message}`)
+						);
 				}
 			}
 		});
 
 		this.bot.on("messageCreate", async message => {
 			if (message.author.bot) return;
-			
+
 			const cache = await this.botCache.getGuildCache(message.guild!);
-			
+
 			/**
 			 * Doesn't type guard but good to assert anyway
 			 */
@@ -157,9 +164,14 @@ export default class Bot {
 				const command = this.messageCommandFiles.get(options[0].replace(cache.messagePrefix, ""));
 
 				if (!command) return;
+
+				logger.info(`[MESSAGE]: ${command.builder.name}`);
+
 				if (!MessageCommandValidator.validatePrefix(cache.messagePrefix, options[0])) return;
 				if (!MessageCommandValidator.validateOptions(command.builder.options, options.slice(1))) {
-					await message.reply({ embeds: [getProperUsageEmbed(command.builder)] });
+					await message
+						.reply({ embeds: [getProperUsageEmbed(command.builder)] })
+						.catch(err => logger.warn(`Could not reply to message: ${err.message}`));
 					return;
 				}
 
@@ -170,23 +182,28 @@ export default class Bot {
 						await command.guard.test(helper);
 					} catch (err) {
 						await command.guard.fail(err as Error, helper);
-						await message.delete().catch(() => {});
+						await message
+							.delete()
+							.catch(err => logger.warn(`Could not delete message: ${err.message}`));
 						return;
 					}
 				}
 
 				try {
 					await command.execute(helper);
-					await message.delete().catch(() => {});
+					await message
+						.delete()
+						.catch(err => logger.warn(`Could not delete message: ${err.message}`));
 				} catch (err) {
-					console.error(`❌ Failed to execute message command:\nName: ${command.builder.name}`);
-					console.error(`Error: "${(err as Error).message}"`);
+					logger.error(
+						`Failed to execute message command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
+					);
 				}
 			}
 		});
 
 		this.bot.on("guildDelete", async guild => {
-			console.log(`Removed from guild: ${guild.name}`);
+			logger.info(`Removed from guild: ${guild.name}`);
 		});
 	}
 
