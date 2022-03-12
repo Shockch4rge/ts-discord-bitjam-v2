@@ -21,9 +21,8 @@ export default class BotCache {
 			credential: admin.credential.cert(config.firebase.service_account as ServiceAccount),
 		});
 		this.db = admin.firestore();
-
 		this.bot = bot;
-		this.guildCaches = new Collection<string, GuildCache>();
+		this.guildCaches = new Collection();
 		this.guildRefs = this.db.collection(config.firebase.collection.guilds);
 		this.userRefs = this.db.collection(config.firebase.collection.users);
 	}
@@ -49,7 +48,7 @@ export default class BotCache {
 			snap = await guildRef.get();
 		}
 
-		const cache = new GuildCache(this.bot, guild, this.userRefs, snap.get("prefix"));
+		const cache = new GuildCache(this.bot, guild, guildRef, this.userRefs, snap.get("prefix"));
 		this.guildCaches.set(guild.id, cache);
 		return cache;
 	}
