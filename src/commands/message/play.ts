@@ -13,13 +13,8 @@ const command: MessageCommandData = {
 		),
 
 	execute: async helper => {
-		const connection = joinVoiceChannel({
-			guildId: helper.message.guildId!,
-			channelId: helper.message.member!.voice.channelId!,
-			adapterCreator: helper.message.guild!.voiceAdapterCreator as DiscordGatewayAdapterCreator,
-		});
 		const service = helper.cache.service;
-		service.createConnection(connection);
+		const connection = service.createConnection(helper.message.member!);
 
 		const [commandName, query] = helper.options;
 	},
