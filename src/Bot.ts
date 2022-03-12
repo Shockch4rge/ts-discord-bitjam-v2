@@ -55,8 +55,8 @@ export default class Bot {
 				try {
 					await SlashCommandDeployer.deploy(guild.id, this.slashCommandFiles);
 				} catch (err) {
-					console.error(
-						`❌ Failed to deploy slash commands in ${guild.name}: ${(err as Error).message}`
+					logger.error(
+						`Failed to deploy slash commands in ${guild.name}: ${(err as Error).message}`
 					);
 				}
 
@@ -69,7 +69,7 @@ export default class Bot {
 		this.bot.on("error", error => console.error(`❗ Bot Error: ${error.message}`));
 
 		this.bot.on("interactionCreate", async interaction => {
-			const guildCache = await this.botCache.getGuildCache(interaction.guild!);
+			const cache = await this.botCache.getGuildCache(interaction.guild!);
 
 			if (interaction.isCommand()) {
 				const command = this.slashCommandFiles.get(interaction.commandName);
@@ -83,7 +83,7 @@ export default class Bot {
 					})
 					.catch(err => logger.warn(`Could not defer reply: ${err.message}`));
 
-				const helper = new SlashCommandHelper(interaction, guildCache);
+				const helper = new SlashCommandHelper(interaction, cache);
 
 				if (command.guard) {
 					try {
@@ -102,6 +102,8 @@ export default class Bot {
 						`Failed to execute command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
 					);
 				}
+
+				return;
 			}
 
 			if (interaction.isButton()) {
@@ -110,7 +112,7 @@ export default class Bot {
 
 				logger.info(`[BUTTON]: ${button.id}`);
 
-				const helper = new ButtonHelper(interaction, guildCache);
+				const helper = new ButtonHelper(interaction, cache);
 
 				try {
 					await button.execute(helper);
@@ -124,6 +126,8 @@ export default class Bot {
 							logger.error(`Failed to execute button:\nID: ${button.id} Error: ${err.message}`)
 						);
 				}
+
+				return;
 			}
 
 			if (interaction.isSelectMenu()) {
@@ -132,7 +136,7 @@ export default class Bot {
 
 				logger.info(`[MENU]: ${menu.id}`);
 
-				const helper = new MenuHelper(interaction, guildCache);
+				const helper = new MenuHelper(interaction, cache);
 
 				try {
 					await menu.execute(helper);
@@ -146,6 +150,16 @@ export default class Bot {
 							logger.error(`Could execute menu:\nID: ${menu.id} Error: ${err.message}`)
 						);
 				}
+
+				return;
+			}
+		});
+
+		this.bot.on("voiceStateUpdate", async (oldState, newState) => {
+			const members = newState.channel?.members;
+
+			if (members?.size === 1 && members.first()?.id === this.bot.user!.id) {
+
 			}
 		});
 
@@ -158,13 +172,12 @@ export default class Bot {
 			 * Doesn't type guard but good to assert anyway
 			 */
 			if (message.channel.isText()) {
-				await message.channel.sendTyping();
-
 				const options = message.content.split(/\s+/);
 				const command = this.messageCommandFiles.get(options[0].replace(cache.messagePrefix, ""));
 
 				if (!command) return;
 
+				await message.channel.sendTyping();
 				logger.info(`[MESSAGE]: ${command.builder.name}`);
 
 				if (!MessageCommandValidator.validatePrefix(cache.messagePrefix, options[0])) return;
@@ -199,6 +212,8 @@ export default class Bot {
 						`Failed to execute message command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
 					);
 				}
+
+				return;
 			}
 		});
 
