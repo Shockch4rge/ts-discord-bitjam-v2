@@ -4,7 +4,7 @@ export class MessageCommandBuilder {
 	public name: string;
 	public description: string;
 	public aliases: string[];
-	public options: MessageCommandOption<unknown>[];
+	public options: MessageCommandOption[];
 
 	public constructor() {
 		this.name = "No name implemented";
@@ -28,27 +28,35 @@ export class MessageCommandBuilder {
 		return this;
 	}
 
-	public addOption<T extends DiscordTypes>(
-		composer: (option: MessageCommandOption<T>) => MessageCommandOption<T>
-	): this {
-		const option = composer(new MessageCommandOption<T>());
+	public addStringOption(composer: (option: MessageCommandOption) => MessageCommandOption) {
+		const option = composer(new MessageCommandOption("string"));
+		this.options.push(option);
+		return this;
+	}
+
+	public addNumberOption(composer: (option: MessageCommandOption) => MessageCommandOption) {
+		const option = composer(new MessageCommandOption("number"));
+		this.options.push(option);
+		return this;
+	}
+
+	public addBooleanOption(composer: (option: MessageCommandOption) => MessageCommandOption) {
+		const option = composer(new MessageCommandOption("boolean"));
 		this.options.push(option);
 		return this;
 	}
 }
 
-export class MessageCommandOption<T extends DiscordTypes | unknown = unknown> {
+export class MessageCommandOption {
 	public name: string;
 	public description: string;
 	public choices?: unknown[];
-	/**
-	 * Use typeof with this property to evaluate it
-	 */
-	public readonly type!: T;
+	public type: "string" | "number" | "boolean" | `<!@${string}>`;
 
-	public constructor() {
+	public constructor(type: "string" | "number" | "boolean" | `<!@${string}>`) {
 		this.name = "No name implemented";
 		this.description = "No description implemented";
+		this.type = type;
 	}
 
 	public setName(name: string) {
