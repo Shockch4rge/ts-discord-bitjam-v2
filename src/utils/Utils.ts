@@ -1,7 +1,5 @@
-export class Utils {
-	private constructor() {}
-
-	public static delay(ms: number): Promise<unknown> {
+export namespace Utils {
+	export function delay(ms: number): Promise<unknown> {
 		return new Promise(resolve => {
 			setTimeout(resolve, ms);
 		});
