@@ -2,11 +2,12 @@ import { Message, MessageEmbed, WebhookMessageOptions } from 'discord.js';
 
 import GuildCache from '../app/GuildCache';
 import { DiscordTypes } from '../types/data';
+import { MessageCommandBuilder, MessageCommandOption } from '../utils/MessageCommandBuilder';
 
 export class MessageCommandHelper {
 	public readonly message: Message;
 	public readonly cache: GuildCache;
-	public readonly options: DiscordTypes[];
+	public readonly options: string[];
 
 	public constructor(message: Message, guildCache: GuildCache) {
 		this.message = message;
