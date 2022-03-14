@@ -1,12 +1,12 @@
-import { MessageEmbed } from 'discord.js';
+import { MessageEmbed, Options } from 'discord.js';
 
 import { MessageCommandBuilder } from './MessageCommandBuilder';
 
 export const getProperUsageEmbed = (builder: MessageCommandBuilder) => {
-	return new MessageEmbed()
+	const embed = new MessageEmbed()
 		.setAuthor({ name: "❌  Invalid arguments provided!" })
 		.setTitle("Proper usage:")
-		.setFields([
+		.addFields([
 			{
 				name: "Name",
 				value: builder.name,
@@ -27,13 +27,31 @@ export const getProperUsageEmbed = (builder: MessageCommandBuilder) => {
 								.join(" ")}`,
 				inline: true,
 			},
-			...builder.options.map(option => ({
-				name: "`" + option.name + "`",
+		]);
+	
+
+	for (const option of builder.options) {
+		embed.addFields([
+			{
+				name: "Argument",
+				value: option.name,
+				inline: true,
+			},
+			{
+				name: "Type",
+				value: option.type,
+				inline: true,
+			},
+			{
+				name: "Description",
 				value: option.description,
-			})),
-		])
-		.setFooter({
-			text: "If you need help or a command isn't working, ping me.",
-		})
-		.setColor("RED");
+				inline: true,
+			},
+		]);
+	}
+
+	embed.setFooter({ text: "If you need help or a command isn't working, ping me." });
+	embed.setColor("RED");
+
+	return embed;
 };
