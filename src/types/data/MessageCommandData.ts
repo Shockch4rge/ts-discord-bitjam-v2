@@ -6,7 +6,7 @@ export type MessageCommandData = {
 
 	guard?: {
 		test: (helper: MessageCommandHelper) => Promise<void>;
-		fail: (err: Error, helper: MessageCommandHelper) => Promise<void>;
+		reject: (err: Error, helper: MessageCommandHelper) => Promise<void>;
 	};
 
 	execute: (helper: MessageCommandHelper) => Promise<void>;
