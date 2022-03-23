@@ -1,24 +1,26 @@
-import 'dotenv/config';
+import "dotenv/config";
 
-import { Client, Collection, MessageEmbed } from 'discord.js';
-import fs from 'node:fs';
-import path from 'node:path';
+import { Client, Collection } from "discord.js";
+import fs from "node:fs";
+import path from "node:path";
 
-import config from '../config.json';
-import BotCache from './app/BotCache';
-import { ButtonHelper } from './helpers/ButtonHelper';
-import { MenuHelper } from './helpers/MenuHelper';
-import { MessageCommandHelper } from './helpers/MessageCommandHelper';
-import { SlashCommandHelper } from './helpers/SlashCommandHelper';
-import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from './types/data';
-import { getProperUsageEmbed } from './utils/getProperUsageEmbed';
-import { logger } from './utils/logger';
-import { MessageCommandValidator } from './utils/MessageCommandValidator';
-import { SlashCommandDeployer } from './utils/SlashCommandDeployer';
+import config from "../config.json";
+import BotCache from "./app/BotCache";
+import GuildCache from "./app/GuildCache";
+import { ButtonHelper } from "./helpers/ButtonHelper";
+import { MenuHelper } from "./helpers/MenuHelper";
+import { MessageCommandHelper } from "./helpers/MessageCommandHelper";
+import { SlashCommandHelper } from "./helpers/SlashCommandHelper";
+import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from "./types/interactions";
+import { Embeds } from "./utils/components/Embeds";
+import { logger } from "./utils/logger";
+import { SlashCommandDeployer } from "./utils/SlashCommandDeployer";
+import { Utils } from "./utils/Utils";
+
 
 export default class Bot {
 	private readonly bot: Client;
-	public readonly botCache: BotCache;
+	public readonly cache: BotCache;
 	public readonly slashCommandFiles: Collection<string, SlashCommandData>;
 	public readonly buttonFiles: Collection<string, ButtonData>;
 	public readonly menuFiles: Collection<string, MenuData>;
@@ -28,7 +30,7 @@ export default class Bot {
 		this.bot = new Client({
 			intents: ["GUILD_MESSAGES", "GUILDS"],
 		});
-		this.botCache = new BotCache(this.bot);
+		this.cache = new BotCache(this.bot);
 		this.slashCommandFiles = new Collection();
 		this.buttonFiles = new Collection();
 		this.menuFiles = new Collection();
@@ -39,8 +41,9 @@ export default class Bot {
 	 * Initialise bot events and interaction/message commands
 	 */
 	public initialise() {
-		this.registerSlashCommandInteractions();
-		this.registerMessageCommands();
+		this.saveSlashCommandInteractions();
+		this.saveMenuInteractions();
+		this.saveMessageCommands();
 		this.registerClientEvents();
 
 		//TODO: replace with env var
@@ -52,36 +55,50 @@ export default class Bot {
 			const guilds = bot.guilds.cache.toJSON();
 
 			for (const guild of guilds) {
+				let cache: GuildCache;
+
+				try {
+					cache = await this.cache.getGuildCache(guild);
+				} catch (err) {
+					logger.error(`Couldn't find ${guild.name}`);
+				}
+
 				try {
 					await SlashCommandDeployer.deploy(guild.id, this.slashCommandFiles);
 				} catch (err) {
-					logger.error(
-						`Failed to deploy slash commands in ${guild.name}: ${(err as Error).message}`
-					);
+					logger.error(`[SLASH_COMMAND_DEPLOY_FAIL] ${guild.name}: ${(err as Error).message}`);
 				}
 
-				console.log(`✅ Deployed slash commands in ${guild.name}`);
+				logger.info(`✅ Deployed slash commands in ${guild.name}`);
+
+				guild.me!.setNickname("⏱ BitJam | Idle");
 			}
 
+			this.bot.user!.setActivity({
+				type: "LISTENING",
+				name: "to /help",
+			});
 			logger.info(`${bot.user.tag} is ready!`);
 		});
 
-		this.bot.on("error", error => console.error(`❗ Bot Error: ${error.message}`));
+		this.bot.on("error", error => {
+			logger.error(`[CLIENT_ERROR]: ${error.message}`);
+		});
 
 		this.bot.on("interactionCreate", async interaction => {
-			const cache = await this.botCache.getGuildCache(interaction.guild!);
+			const cache = await this.cache.getGuildCache(interaction.guild!);
 
 			if (interaction.isCommand()) {
 				const command = this.slashCommandFiles.get(interaction.commandName);
 				if (!command) return;
 
-				logger.info(`[SLASH]: ${command.builder.name}`);
+				logger.info(`[SLASH_COMMAND_EXECUTE]: ${command.builder.name}`);
 
 				await interaction
 					.deferReply({
 						ephemeral: command.ephemeral ?? true,
 					})
-					.catch(err => logger.warn(`Could not defer reply: ${err.message}`));
+					.catch(() => {});
 
 				const helper = new SlashCommandHelper(interaction, cache);
 
@@ -89,8 +106,8 @@ export default class Bot {
 					try {
 						await command.guard.test(helper);
 					} catch (err) {
-						await command.guard.fail(err as Error, helper);
-						logger.info(`Slash command guard failed: ${(err as Error).message}`);
+						await command.guard.reject(err as Error, helper);
+						logger.info(`[SLASH_COMMAND_REJECT]: ${(err as Error).message}`);
 						return;
 					}
 				}
@@ -99,7 +116,7 @@ export default class Bot {
 					await command.execute(helper);
 				} catch (err) {
 					logger.error(
-						`Failed to execute command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
+						`[SLASH_COMMAND_EXECUTE_ERROR]:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
 					);
 				}
 
@@ -110,7 +127,7 @@ export default class Bot {
 				const button = this.buttonFiles.get(interaction.customId);
 				if (!button) return;
 
-				logger.info(`[BUTTON]: ${button.id}`);
+				logger.info(`[BUTTON_EXECUTE]: ${button.id}`);
 
 				const helper = new ButtonHelper(interaction, cache);
 
@@ -123,7 +140,7 @@ export default class Bot {
 							components: [],
 						})
 						.catch(err =>
-							logger.error(`Failed to execute button:\nID: ${button.id} Error: ${err.message}`)
+							logger.error(`[BUTTON_EXECUTE_ERROR]:\nID: ${button.id} Error: ${err.message}`)
 						);
 				}
 
@@ -134,7 +151,7 @@ export default class Bot {
 				const menu = this.menuFiles.get(interaction.customId);
 				if (!menu) return;
 
-				logger.info(`[MENU]: ${menu.id}`);
+				logger.info(`[MENU_EXECUTE]: ${menu.id}`);
 
 				const helper = new MenuHelper(interaction, cache);
 
@@ -146,73 +163,66 @@ export default class Bot {
 							content: `❌ There was an error executing this menu!`,
 							components: [],
 						})
-						.catch(err =>
-							logger.error(`Could execute menu:\nID: ${menu.id} Error: ${err.message}`)
-						);
+						.catch(() => {});
+					logger.error(`[MENU_EXECUTE_ERROR]: \nID: ${menu.id} Error: ${(err as Error).message}`);
 				}
 
 				return;
 			}
 		});
 
-		this.bot.on("voiceStateUpdate", async (oldState, newState) => {
-			const members = newState.channel?.members;
-
-			if (members?.size === 1 && members.first()?.id === this.bot.user!.id) {
-
-			}
-		});
-
 		this.bot.on("messageCreate", async message => {
 			if (message.author.bot) return;
+			if (message.webhookId) return;
+			if (!message.guild) return;
 
-			const cache = await this.botCache.getGuildCache(message.guild!);
+			const cache = await this.cache.getGuildCache(message.guild);
 
-			/**
-			 * Doesn't type guard but good to assert anyway
-			 */
 			if (message.channel.isText()) {
-				const options = message.content.split(/\s+/);
-				const command = this.messageCommandFiles.get(options[0].replace(cache.messagePrefix, ""));
-
-				if (!command) return;
+				const args = message.content.trim().split(/\s+/);
+				const commandName = args[0].slice(cache.messagePrefix.length);
+				const command = this.messageCommandFiles.get(commandName);
 
 				await message.channel.sendTyping();
-				logger.info(`[MESSAGE]: ${command.builder.name}`);
 
-				if (!MessageCommandValidator.validatePrefix(cache.messagePrefix, options[0])) return;
-				if (!MessageCommandValidator.validateOptions(command.builder.options, options.slice(1))) {
-					await message
-						.reply({ embeds: [getProperUsageEmbed(command.builder)] })
-						.catch(err => logger.warn(`Could not reply to message: ${err.message}`));
+				if (!command) {
+					const warning = await message.reply("That command doesn't exist!");
+					await Utils.delay(5000);
+					await warning.delete().catch(() => {});
 					return;
 				}
 
-				const helper = new MessageCommandHelper(message, cache);
+				const { errors, options } = command.builder.validate(message);
+
+				if (errors.option || errors.permission || errors.role) {
+					await message.reply({ embeds: [Embeds.properUsage(command.builder)] }).catch(() => {});
+					return;
+				}
+
+				const helper = new MessageCommandHelper(message, options, cache);
 
 				if (command.guard) {
 					try {
 						await command.guard.test(helper);
 					} catch (err) {
-						await command.guard.fail(err as Error, helper);
-						await message
-							.delete()
-							.catch(err => logger.warn(`Could not delete message: ${err.message}`));
+						await command.guard.reject(err as Error, helper);
+						await message.delete().catch(() => {});
+						logger.info(`[MESSAGE_COMMAND_REJECT]: ${(err as Error).message}`);
 						return;
 					}
 				}
 
 				try {
 					await command.execute(helper);
-					await message
-						.delete()
-						.catch(err => logger.warn(`Could not delete message: ${err.message}`));
 				} catch (err) {
 					logger.error(
-						`Failed to execute message command:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
+						`[MESSAGE_COMMAND_ERROR]:\nName: ${command.builder.name}\nDescription: ${
+							command.builder.description
+						}\nError: ${(err as Error).message}`
 					);
 				}
 
+				logger.info(`[MESSAGE_COMMAND_EXECUTE]: ${command.builder.name}`);
 				return;
 			}
 		});
@@ -222,24 +232,44 @@ export default class Bot {
 		});
 	}
 
-	private registerSlashCommandInteractions() {
-		const commandDir = path.join(__dirname, `./commands/slash`);
+	private saveSlashCommandInteractions() {
+		const commandDir = path.join(__dirname, `./interactions/commands/slash`);
 		const commandNames = fs.readdirSync(commandDir).filter(this.isFile);
 
 		for (const commandName of commandNames) {
 			const commandData = require(path.join(commandDir, commandName)) as SlashCommandData;
 			this.slashCommandFiles.set(commandData.builder.name, commandData);
 		}
+
+		logger.info("Slash command interactions loaded");
 	}
 
-	private registerMessageCommands() {
-		const folder = path.join(__dirname, `./commands/message`);
+	private saveMenuInteractions() {
+		const folder = path.join(__dirname, `./interactions/menus`);
+		const names = fs.readdirSync(folder).filter(this.isFile);
+
+		for (const name of names) {
+			const data = require(path.join(folder, name)) as MenuData;
+			this.menuFiles.set(data.id, data);
+		}
+
+		logger.info("Menu interactions loaded");
+	}
+
+	private saveMessageCommands() {
+		const folder = path.join(__dirname, `./interactions/commands/message`);
 		const names = fs.readdirSync(folder).filter(this.isFile);
 
 		for (const name of names) {
 			const data = require(path.join(folder, name)) as MessageCommandData;
 			this.messageCommandFiles.set(data.builder.name, data);
+
+			for (const alias of data.builder.aliases) {
+				this.messageCommandFiles.set(alias, data);
+			}
 		}
+
+		logger.info("Message commands loaded");
 	}
 
 	private isFile(file: string) {
