@@ -33,6 +33,11 @@ export namespace BitjamError {
 		public override name = "QUEUE_EMPTY";
 		public override message = "The queue is empty.";
 	}
+
+	export class QueueIndexOutOfBoundsError extends BitjamError {
+		public override name = "QUEUE_INDEX_OUT_OF_BOUNDS";
+		public override message = "The index is out of bounds.";
+	}
 	// #endregion
 
 	// #region track errors
