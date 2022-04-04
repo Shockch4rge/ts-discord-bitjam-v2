@@ -1,16 +1,17 @@
-import { MessageEmbed } from "discord.js";
+import { Collection, MessageEmbed } from "discord.js";
+import { MessageCommandBuilder, MessageCommandOptionChoiceable } from "djs-message-commands";
 
-import { bold, inlineCode } from "@discordjs/builders";
+import { bold, formatEmoji, inlineCode } from "@discordjs/builders";
 
+import GuildCache from "../../app/GuildCache";
 import { QueueManager } from "../../app/QueueManager";
 import { Utils } from "../../utils/Utils";
-import { MessageCommandBuilder, MessageCommandOptionChoiceable } from "../package";
 
 
-type EmbedComponents = Readonly<Record<string, (...args: any[]) => MessageEmbed>>;
+type EmbedComponents = Readonly<Record<`for${string}`, (...args: any[]) => MessageEmbed>>;
 
 export const Embeds: EmbedComponents = {
-	properUsage: (builder: MessageCommandBuilder) => {
+	forProperUsage: (builder: MessageCommandBuilder) => {
 		const embed = new MessageEmbed()
 			.setAuthor({ name: "❌  Invalid arguments provided!" })
 			.setTitle("Proper usage:")
@@ -38,6 +39,7 @@ export const Embeds: EmbedComponents = {
 			]);
 
 		embed.addField(Utils.TEXT.EMPTY_CHAR, "__**Arguments**__");
+
 		for (let i = 0; i < builder.options.length; i++) {
 			const option = builder.options[i];
 			embed.addField(
@@ -57,13 +59,13 @@ export const Embeds: EmbedComponents = {
 			);
 		}
 
-		embed.setFooter({ text: "If you need help or a command isn't working, ping me." });
+		embed.setFooter({ text: `Use ${inlineCode(`<prefix>help`)} on a command for more details.` });
 		embed.setColor("RED");
 
 		return embed;
 	},
 
-	queue: (queue: QueueManager) => {
+	forQueue: (queue: QueueManager) => {
 		const embed = new MessageEmbed();
 		const length = queue.tracks.length;
 		const currentTrack = queue.get(0);
@@ -96,6 +98,31 @@ export const Embeds: EmbedComponents = {
 				text: `🗃️ There ${length === 1 ? "is 1 track" : `are ${length} tracks`} in the queue.`,
 			})
 			.setColor("GREYPLE");
+
+		return embed;
+	},
+
+	forPlaylistOptions: (emojis: Collection<string, string>) => {
+		const embed = new MessageEmbed();
+
+		embed.setTitle("🎵  Playlist options:");
+		embed.setFields([
+			{
+				name: `${emojis.get("plus")!}Create a playlist`,
+				value: Utils.TEXT.EMPTY_CHAR,
+				inline: true,
+			},
+			{
+				name: `${emojis.get("plus")!}Add to a playlist`,
+				value: Utils.TEXT.EMPTY_CHAR,
+				inline: true,
+			},
+			{
+				name: `${emojis.get("minus")!}Delete a playlist`,
+				value: Utils.TEXT.EMPTY_CHAR,
+				inline: true,
+			},
+		]);
 
 		return embed;
 	},
