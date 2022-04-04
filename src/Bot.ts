@@ -92,8 +92,6 @@ export default class Bot {
 				const command = this.slashCommandFiles.get(interaction.commandName);
 				if (!command) return;
 
-				logger.info(`[SLASH_COMMAND_EXECUTE]: ${command.builder.name}`);
-
 				await interaction
 					.deferReply({
 						ephemeral: command.ephemeral ?? true,
@@ -105,15 +103,17 @@ export default class Bot {
 				if (command.guard) {
 					try {
 						await command.guard.test(helper);
+						logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild!.name}`);
 					} catch (err) {
 						await command.guard.reject(err as Error, helper);
-						logger.info(`[SLASH_COMMAND_REJECT]: ${(err as Error).message}`);
+						logger.info(`[SLASH_COMMAND_GUARD_FAIL]: ${(err as Error).message}`);
 						return;
 					}
 				}
 
 				try {
 					await command.execute(helper);
+					logger.info(`[SLASH_COMMAND_EXECUTE]: ${command.builder.name}`);
 				} catch (err) {
 					logger.error(
 						`[SLASH_COMMAND_EXECUTE_ERROR]:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
@@ -127,12 +127,11 @@ export default class Bot {
 				const button = this.buttonFiles.get(interaction.customId);
 				if (!button) return;
 
-				logger.info(`[BUTTON_EXECUTE]: ${button.id}`);
-
 				const helper = new ButtonHelper(interaction, cache);
 
 				try {
 					await button.execute(helper);
+					logger.info(`[BUTTON_EXECUTE]: ${button.id}`);
 				} catch (err) {
 					await helper
 						.update({
@@ -151,12 +150,11 @@ export default class Bot {
 				const menu = this.menuFiles.get(interaction.customId);
 				if (!menu) return;
 
-				logger.info(`[MENU_EXECUTE]: ${menu.id}`);
-
 				const helper = new MenuHelper(interaction, cache);
 
 				try {
 					await menu.execute(helper);
+					logger.info(`[MENU_EXECUTE]: ${menu.id}`);
 				} catch (err) {
 					await helper
 						.update({
@@ -176,14 +174,21 @@ export default class Bot {
 			if (message.webhookId) return;
 			if (!message.guild) return;
 
+			const channel = message.channel;
 			const cache = await this.cache.getGuildCache(message.guild);
 
-			if (message.channel.isText()) {
+			if (channel.isText()) {
 				const args = message.content.trim().split(/\s+/);
+
+				// message doesn't start with guild prefix
+				if (args[0].slice(0, cache.messagePrefix.length) !== cache.messagePrefix) {
+					return;
+				}
+
 				const commandName = args[0].slice(cache.messagePrefix.length);
 				const command = this.messageCommandFiles.get(commandName);
 
-				await message.channel.sendTyping();
+				await channel.sendTyping();
 
 				if (!command) {
 					const warning = await message.reply("That command doesn't exist!");
@@ -192,10 +197,11 @@ export default class Bot {
 					return;
 				}
 
-				const { errors, options } = command.builder.validate(message);
+				const [errors, options] = command.builder.validate(message);
 
-				if (errors.option || errors.permission || errors.role) {
-					await message.reply({ embeds: [Embeds.properUsage(command.builder)] }).catch(() => {});
+				if (errors) {
+					logger.info(`[MESSAGE_COMMAND_VALIDATE_FAIL]:\nErrors: ${errors.map(e => e.type)}`);
+					await message.reply({ embeds: [Embeds.forProperUsage(command.builder)] }).catch(() => {});
 					return;
 				}
 
@@ -214,15 +220,15 @@ export default class Bot {
 
 				try {
 					await command.execute(helper);
+					logger.info(`[MESSAGE_COMMAND_EXECUTE]: ${command.builder.name}`);
 				} catch (err) {
 					logger.error(
-						`[MESSAGE_COMMAND_ERROR]:\nName: ${command.builder.name}\nDescription: ${
+						`[MESSAGE_COMMAND_EXECUTE_ERROR]:\nName: ${command.builder.name}\nDescription: ${
 							command.builder.description
 						}\nError: ${(err as Error).message}`
 					);
 				}
 
-				logger.info(`[MESSAGE_COMMAND_EXECUTE]: ${command.builder.name}`);
 				return;
 			}
 		});
@@ -233,12 +239,12 @@ export default class Bot {
 	}
 
 	private saveSlashCommandInteractions() {
-		const commandDir = path.join(__dirname, `./interactions/commands/slash`);
-		const commandNames = fs.readdirSync(commandDir).filter(this.isFile);
+		const folder = path.join(__dirname, `./interactions/commands/slash`);
+		const names = fs.readdirSync(folder).filter(this.isFile);
 
-		for (const commandName of commandNames) {
-			const commandData = require(path.join(commandDir, commandName)) as SlashCommandData;
-			this.slashCommandFiles.set(commandData.builder.name, commandData);
+		for (const name of names) {
+			const data = require(path.join(folder, name)) as SlashCommandData;
+			this.slashCommandFiles.set(data.builder.name, data);
 		}
 
 		logger.info("Slash command interactions loaded");
@@ -262,9 +268,18 @@ export default class Bot {
 
 		for (const name of names) {
 			const data = require(path.join(folder, name)) as MessageCommandData;
+
+			if (this.messageCommandFiles.has(data.builder.name)) {
+				throw new Error(`Duplicate message command name: ${data.builder.name}`);
+			}
+
 			this.messageCommandFiles.set(data.builder.name, data);
 
 			for (const alias of data.builder.aliases) {
+				if (this.messageCommandFiles.has(alias)) {
+					throw new Error(`Duplicate message command alias: ${alias}`);
+				}
+
 				this.messageCommandFiles.set(alias, data);
 			}
 		}
