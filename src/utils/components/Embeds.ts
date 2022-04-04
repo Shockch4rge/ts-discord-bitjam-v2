@@ -7,10 +7,13 @@ import GuildCache from "../../app/GuildCache";
 import { QueueManager } from "../../app/QueueManager";
 import { Utils } from "../../utils/Utils";
 
-
 type EmbedComponents = Readonly<Record<`for${string}`, (...args: any[]) => MessageEmbed>>;
 
 export const Embeds: EmbedComponents = {
+	forGood: (title: string) => new MessageEmbed().setAuthor({ name: `✅  ${title}` }).setColor("GREEN"),
+
+	forBad: (title: string) => new MessageEmbed().setAuthor({ name: `❌  ${title}` }).setColor("RED"),
+
 	forProperUsage: (builder: MessageCommandBuilder) => {
 		const embed = new MessageEmbed()
 			.setAuthor({ name: "❌  Invalid arguments provided!" })
