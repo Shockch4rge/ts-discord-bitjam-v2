@@ -17,6 +17,7 @@ export default class BotCache {
 	public readonly guildCaches: Collection<string, GuildCache>;
 	public readonly guildRefs: CollectionReference<DocumentData>;
 	public readonly userRefs: CollectionReference<DocumentData>;
+	public readonly playlistRefs: CollectionReference<DocumentData>;
 
 	public constructor(bot: Client) {
 		this.db = getFirestore(initializeApp(config.firebase.config));
@@ -24,6 +25,7 @@ export default class BotCache {
 		this.guildCaches = new Collection();
 		this.guildRefs = collection(this.db, config.firebase.collection.guilds);
 		this.userRefs = collection(this.db, config.firebase.collection.users);
+		this.playlistRefs = collection(this.db, config.firebase.collection.playlists);
 	}
 
 	public async getGuildCache(guild: Guild) {
@@ -41,13 +43,20 @@ export default class BotCache {
 		let snap = await getDoc(guildRef);
 
 		if (!snap.exists) {
-			setDoc(guildRef, {
+			await setDoc(guildRef, {
 				prefix: ">>",
 			});
 			snap = await getDoc(guildRef);
 		}
 
-		const cache = new GuildCache(this.bot, guild, guildRef, this.userRefs, snap.get("prefix"));
+		const cache = new GuildCache(
+			this.bot,
+			guild,
+			guildRef,
+			this.userRefs,
+			this.playlistRefs,
+			snap.get("prefix")
+		);
 		this.guildCaches.set(guild.id, cache);
 		return cache;
 	}

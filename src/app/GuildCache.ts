@@ -1,7 +1,7 @@
 import AfterEvery from "after-every";
 import { Client, Collection, Guild, GuildChannel } from "discord.js";
 import {
-    CollectionReference, DocumentData, DocumentReference, getDoc, updateDoc
+    CollectionReference, doc, DocumentData, DocumentReference, getDoc, setDoc, updateDoc
 } from "firebase/firestore";
 
 import { formatEmoji } from "@discordjs/builders";
@@ -16,6 +16,7 @@ export default class GuildCache {
 	public readonly guild: Guild;
 	public readonly guildRef: DocumentReference<DocumentData>;
 	public readonly userRefs: CollectionReference<DocumentData>;
+	public readonly playlistRefs: CollectionReference<DocumentData>;
 	public readonly messagePrefix: string;
 	public readonly music: MusicService;
 	public readonly emojis: Collection<string, string>;
@@ -25,12 +26,14 @@ export default class GuildCache {
 		guild: Guild,
 		guildRef: DocumentReference<DocumentData>,
 		userRefs: CollectionReference<DocumentData>,
+		playlistRefs: CollectionReference<DocumentData>,
 		messagePrefix: string
 	) {
 		this.bot = bot;
 		this.guild = guild;
 		this.guildRef = guildRef;
 		this.userRefs = userRefs;
+		this.playlistRefs = playlistRefs;
 		this.messagePrefix = messagePrefix;
 		this.music = new MusicService();
 		this.emojis = new Collection();
@@ -42,15 +45,31 @@ export default class GuildCache {
 		this.resetBot();
 	}
 
-	public async setMessagePrefix(prefix: string) {
-		const snap = await getDoc(this.guildRef);
+	public async setPrefix(prefix: string) {
+		await setDoc(this.guildRef, { prefix }, { merge: true });
+	}
+
+	public async setChannel(channelId: string) {
+		await setDoc(this.guildRef, { channelId }, { merge: true });
+	}
+
+	public async getUserPlaylists(userId: string) {
+		const snap = await getDoc(doc(this.userRefs, userId));
 
 		if (snap.exists()) {
-			await updateDoc(this.guildRef, { prefix });
 		}
 	}
 
-	public getUserPlaylists(userId: string) {}
+	public async createPlaylist(userId: string, playlistName: string) {
+		await setDoc(doc(this.playlistRefs, userId), {
+			name: playlistName,
+			tracks: [],
+		});
+	}
+
+	public async addToPlaylist(track: any) {
+
+	}
 
 	// leave empty voice channels, un-nick
 	private resetBot() {
