@@ -1,7 +1,7 @@
 import { MessageCommandHelper } from "../../helpers/MessageCommandHelper";
 
 
-import type { MessageCommandBuilder } from '../../utils/package/MessageCommandBuilder';
+import type { MessageCommandBuilder } from 'djs-message-commands';
 
 export type MessageCommandData = {
 	builder: MessageCommandBuilder;
