@@ -100,14 +100,25 @@ export default class Bot {
 
 				const helper = new SlashCommandHelper(interaction, cache);
 
-				if (command.guard) {
-					try {
-						await command.guard.test(helper);
-						logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild!.name}`);
-					} catch (err) {
-						await command.guard.reject(err as Error, helper);
-						logger.info(`[SLASH_COMMAND_GUARD_FAIL]: ${(err as Error).message}`);
-						return;
+				// if (command.guard) {
+				// 	try {
+				// 		await command.guard.test(helper);
+				// 		logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild!.name}`);
+				// 	} catch (err) {
+				// 		await command.guard.reject(err as Error, helper);
+				// 		logger.info(`[SLASH_COMMAND_GUARD_FAIL]: ${(err as Error).message}`);
+				// 		return;
+				// 	}
+				// }
+
+				if (command.guards) {
+					for (const guard of command.guards) {
+						const result = await guard.execute(cache, interaction);
+						
+						if (!result) {
+							await interaction.followUp({ embeds: [Embeds.forBad(guard.message)] });
+							return;
+						}
 					}
 				}
 
@@ -197,6 +208,17 @@ export default class Bot {
 					return;
 				}
 
+				if (command.guards) {
+					for (const guard of command.guards) {
+						const result = await guard.execute(cache, message);
+
+						if (!result) {
+							await message.reply({ embeds: [Embeds.forBad(guard.message)] });
+							return;
+						}
+					}
+				}
+
 				const [errors, options] = command.builder.validate(message);
 
 				if (errors) {
@@ -207,16 +229,16 @@ export default class Bot {
 
 				const helper = new MessageCommandHelper(message, options, cache);
 
-				if (command.guard) {
-					try {
-						await command.guard.test(helper);
-					} catch (err) {
-						await command.guard.reject(err as Error, helper);
-						await message.delete().catch(() => {});
-						logger.info(`[MESSAGE_COMMAND_REJECT]: ${(err as Error).message}`);
-						return;
-					}
-				}
+				// if (command.guard) {
+				// 	try {
+				// 		await command.guard.test(helper);
+				// 	} catch (err) {
+				// 		await command.guard.reject(err as Error, helper);
+				// 		await message.delete().catch(() => {});
+				// 		logger.info(`[MESSAGE_COMMAND_REJECT]: ${(err as Error).message}`);
+				// 		return;
+				// 	}
+				// }
 
 				try {
 					await command.execute(helper);
