@@ -1,18 +1,17 @@
-import { Message, MessageEmbed, WebhookMessageOptions } from 'discord.js';
+import { Message, MessageEmbed, WebhookMessageOptions } from "discord.js";
 
-import GuildCache from '../app/GuildCache';
-import { DiscordTypes } from '../types/data';
-import { MessageCommandBuilder, MessageCommandOption } from '../utils/MessageCommandBuilder';
+import GuildCache from "../app/GuildCache";
+
 
 export class MessageCommandHelper {
 	public readonly message: Message;
+	public readonly options: unknown[];
 	public readonly cache: GuildCache;
-	public readonly options: string[];
 
-	public constructor(message: Message, guildCache: GuildCache) {
+	public constructor(message: Message, options: unknown[], guildCache: GuildCache) {
 		this.message = message;
+		this.options = options;
 		this.cache = guildCache;
-		this.options = message.content.split(" ");
 	}
 
 	public async respond(options: MessageEmbed | WebhookMessageOptions | string) {
