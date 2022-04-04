@@ -2,6 +2,8 @@ import { MessageEmbed } from "discord.js";
 import { MessageCommandBuilder } from "djs-message-commands";
 
 import { MessageCommandData } from "../../../types/interactions";
+import { BotNeedsVoiceConnection } from "../../../utils/guards/BotNeedsVoiceConnection";
+import { BotVoiceChannelOnly } from "../../../utils/guards/BotVoiceChannelOnly";
 
 
 const command: MessageCommandData = {

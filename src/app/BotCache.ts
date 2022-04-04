@@ -3,13 +3,19 @@ import "dotenv/config";
 import { Client, Collection, Guild } from "discord.js";
 import { initializeApp } from "firebase/app";
 import {
-    addDoc, collection, CollectionReference, deleteDoc, doc, DocumentData, Firestore, getDoc,
-    getFirestore, setDoc
+	collection,
+	CollectionReference,
+	deleteDoc,
+	doc,
+	DocumentData,
+	Firestore,
+	getDoc,
+	getFirestore,
+	setDoc,
 } from "firebase/firestore";
 
 import config from "../../config.json";
 import GuildCache from "./GuildCache";
-
 
 export default class BotCache {
 	public readonly db: Firestore;
@@ -65,10 +71,9 @@ export default class BotCache {
 		const guildRef = doc(this.guildRefs, guildId);
 		const snap = await getDoc(guildRef);
 
-		// const doc = await this.guildRefs.doc(guildId).get();
 		if (snap.exists()) {
 			await deleteDoc(guildRef);
+			this.guildCaches.delete(guildId);
 		}
-		this.guildCaches.delete(guildId);
 	}
 }

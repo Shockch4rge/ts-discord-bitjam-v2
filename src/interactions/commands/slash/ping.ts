@@ -1,8 +1,10 @@
-import { MessageEmbed } from 'discord.js';
+import { MessageEmbed } from "discord.js";
 
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder } from "@discordjs/builders";
 
-import { SlashCommandData } from '../../../types/interactions';
+import { SlashCommandData } from "../../../types/interactions";
+import { BotVoiceChannelOnly } from "../../../utils/guards/BotVoiceChannelOnly";
+
 
 const command: SlashCommandData = {
 	builder: new SlashCommandBuilder().setName("ping").setDescription("Get the latency of the bot."),
