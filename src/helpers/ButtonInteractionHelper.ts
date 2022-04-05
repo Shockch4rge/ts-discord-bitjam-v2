@@ -1,14 +1,12 @@
 import { ButtonInteraction, MessageEmbed, WebhookEditMessageOptions } from "discord.js";
 
 import GuildCache from "../app/GuildCache";
-import {
-    InteractionResponseOptions, MessageComponentInteractionHelperProps
-} from "../types/InteractionHelper";
+import { MessageComponentInteractionHelperProps } from "../types/interactions/InteractionHelper";
 
 
 export class ButtonHelper implements MessageComponentInteractionHelperProps<ButtonInteraction> {
-	public interaction: ButtonInteraction;
-	public cache: GuildCache;
+	public readonly interaction: ButtonInteraction;
+	public readonly cache: GuildCache;
 
 	public constructor(interaction: ButtonInteraction, guildCache: GuildCache) {
 		this.interaction = interaction;
@@ -17,19 +15,11 @@ export class ButtonHelper implements MessageComponentInteractionHelperProps<Butt
 
 	public async update(options: MessageEmbed | WebhookEditMessageOptions | string) {
 		if (options instanceof MessageEmbed) {
-			await this.interaction
-				.update({
-					embeds: [options],
-				})
-				.catch(() => {});
+			await this.interaction.update({ embeds: [options] }).catch(() => {});
 		} else if (typeof options === "object") {
-			await this.interaction.editReply(options);
+			await this.interaction.update(options).catch(() => {});
 		} else {
-			await this.interaction
-				.update({
-					content: options,
-				})
-				.catch(() => {});
+			await this.interaction.update({ content: options }).catch(() => {});
 		}
 	}
 }

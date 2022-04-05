@@ -3,17 +3,19 @@ import { Message, MessageEmbed, WebhookEditMessageOptions } from "discord.js";
 import GuildCache from "../app/GuildCache";
 import {
     InteractionResponseOptions, MessageInteractionHelperProps
-} from "../types/InteractionHelper";
+} from "../types/interactions/InteractionHelper";
 
 
-class MessageInteractionHelper implements MessageInteractionHelperProps {
+export class MessageInteractionHelper implements MessageInteractionHelperProps {
+	public readonly interaction: Message;
+	public readonly cache: GuildCache;
+	public readonly options: unknown[];
 	public clientReply?: Message;
-	public interaction: Message;
-	public cache: GuildCache;
-
-	public constructor(interaction: Message, guildCache: GuildCache) {
+	
+	public constructor(interaction: Message, guildCache: GuildCache, options: unknown[]) {
 		this.interaction = interaction;
 		this.cache = guildCache;
+		this.options = options;
 	}
 
 	public async respond(options: InteractionResponseOptions) {

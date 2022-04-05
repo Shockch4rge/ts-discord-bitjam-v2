@@ -3,12 +3,12 @@ import { CacheType, CommandInteraction, MessageEmbed } from "discord.js";
 import GuildCache from "../app/GuildCache";
 import {
     InteractionResponseOptions, SlashInteractionHelperProps
-} from "../types/InteractionHelper";
+} from "../types/interactions/InteractionHelper";
 
 
-export class SlashCommandHelper implements SlashInteractionHelperProps {
-	public interaction: CommandInteraction;
-	public cache: GuildCache;
+export class SlashInteractionHelper implements SlashInteractionHelperProps {
+	public readonly interaction: CommandInteraction;
+	public readonly cache: GuildCache;
 
 	public constructor(interaction: CommandInteraction, guildCache: GuildCache) {
 		this.interaction = interaction;
@@ -19,9 +19,9 @@ export class SlashCommandHelper implements SlashInteractionHelperProps {
 		if (options instanceof MessageEmbed) {
 			await this.interaction.followUp({ embeds: [options] }).catch(() => {});
 		} else if (typeof options === "object") {
-			this.interaction.followUp(options).catch(() => {});
+			await this.interaction.followUp(options).catch(() => {});
 		} else {
-			this.interaction.followUp(options).catch(() => {});
+			await this.interaction.followUp(options).catch(() => {});
 		}
 	}
 
