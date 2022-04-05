@@ -1,74 +1,35 @@
 import AfterEvery from "after-every";
 import { Client, Collection, Guild, GuildChannel } from "discord.js";
-import {
-    CollectionReference, doc, DocumentData, DocumentReference, getDoc, setDoc, updateDoc
-} from "firebase/firestore";
 
 import { formatEmoji } from "@discordjs/builders";
 
 import config from "../../config.json";
 import { logger } from "../utils/logger";
+import { FireStore } from "./FireStore";
 import MusicService from "./MusicService";
 
 
 export default class GuildCache {
 	public readonly bot: Client;
+	public readonly db: FireStore;
 	public readonly guild: Guild;
-	public readonly guildRef: DocumentReference<DocumentData>;
-	public readonly userRefs: CollectionReference<DocumentData>;
-	public readonly playlistRefs: CollectionReference<DocumentData>;
-	public readonly messagePrefix: string;
 	public readonly music: MusicService;
 	public readonly emojis: Collection<string, string>;
+	public readonly prefix: string;
 
-	public constructor(
-		bot: Client,
-		guild: Guild,
-		guildRef: DocumentReference<DocumentData>,
-		userRefs: CollectionReference<DocumentData>,
-		playlistRefs: CollectionReference<DocumentData>,
-		messagePrefix: string
-	) {
+	public constructor(bot: Client, db: FireStore, guild: Guild, messagePrefix: string) {
 		this.bot = bot;
+		this.db = db;
 		this.guild = guild;
-		this.guildRef = guildRef;
-		this.userRefs = userRefs;
-		this.playlistRefs = playlistRefs;
-		this.messagePrefix = messagePrefix;
 		this.music = new MusicService();
 		this.emojis = new Collection();
+		this.prefix = messagePrefix;
 
 		for (const key in config.emojis) {
 			this.emojis.set(key, formatEmoji(config.emojis[key as keyof typeof config.emojis]));
 		}
 
 		this.resetBot();
-	}
-
-	public async setPrefix(prefix: string) {
-		await setDoc(this.guildRef, { prefix }, { merge: true });
-	}
-
-	public async setChannel(channelId: string) {
-		await setDoc(this.guildRef, { channelId }, { merge: true });
-	}
-
-	public async getUserPlaylists(userId: string) {
-		const snap = await getDoc(doc(this.userRefs, userId));
-
-		if (snap.exists()) {
-		}
-	}
-
-	public async createPlaylist(userId: string, playlistName: string) {
-		await setDoc(doc(this.playlistRefs, userId), {
-			name: playlistName,
-			tracks: [],
-		});
-	}
-
-	public async addToPlaylist(track: any) {
-
 	}
 
 	// leave empty voice channels, un-nick

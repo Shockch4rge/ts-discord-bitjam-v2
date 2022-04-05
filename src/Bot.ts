@@ -194,11 +194,11 @@ export default class Bot {
 				const args = message.content.trim().split(/\s+/);
 
 				// message doesn't start with guild prefix
-				if (args[0].slice(0, cache.messagePrefix.length) !== cache.messagePrefix) {
+				if (args[0].slice(0, cache.prefix.length) !== cache.prefix) {
 					return;
 				}
 
-				const commandName = args[0].slice(cache.messagePrefix.length);
+				const commandName = args[0].slice(cache.prefix.length);
 				const command = this.messageCommandFiles.get(commandName);
 
 				await channel.sendTyping();
