@@ -3,14 +3,14 @@ import { Guard } from "../../types/Guard";
 
 
 export class BotNeedsVoiceConnection extends Guard {
-    public constructor() {
-        super({
+	public constructor() {
+		super({
 			name: "BotNeedsVoiceConnection",
 			message: "The bot isn't connected to a voice channel!",
 		});
-    }
+	}
 
-    public async execute(cache: GuildCache): Promise<boolean> {
-        return !!cache.music.connection;
-    }
+	public async execute(cache: GuildCache): Promise<boolean> {
+		return !!cache.music.connection;
+	}
 }

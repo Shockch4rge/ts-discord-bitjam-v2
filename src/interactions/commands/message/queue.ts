@@ -12,7 +12,7 @@ const command: MessageCommandData = {
 		.setAliases(["q"])
 		.addNumberOption(option => option.setName("page").setDescription("Page number")),
 
-	guards: [new BotVoiceChannelOnly(), new BotNeedsVoiceConnection()],
+	guards: [BotVoiceChannelOnly, BotNeedsVoiceConnection],
 
 	execute: async helper => {
 	},

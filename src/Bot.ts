@@ -7,10 +7,10 @@ import path from "node:path";
 import config from "../config.json";
 import BotCache from "./app/BotCache";
 import GuildCache from "./app/GuildCache";
-import { ButtonHelper } from "./helpers/ButtonHelper";
-import { MenuHelper } from "./helpers/MenuHelper";
-import { MessageCommandHelper } from "./helpers/MessageCommandHelper";
-import { SlashCommandHelper } from "./helpers/SlashCommandHelper";
+import { ButtonHelper } from "./helpers/ButtonInteractionHelper";
+import { MenuInteractionHelper } from "./helpers/MenuInteractionHelper";
+import { MessageInteractionHelper } from "./helpers/MessageInteractionHelper";
+import { SlashInteractionHelper } from "./helpers/SlashInteractionHelper";
 import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from "./types/interactions";
 import { Embeds } from "./utils/components/Embeds";
 import { logger } from "./utils/logger";
@@ -98,7 +98,7 @@ export default class Bot {
 					})
 					.catch(() => {});
 
-				const helper = new SlashCommandHelper(interaction, cache);
+				const helper = new SlashInteractionHelper(interaction, cache);
 
 				// if (command.guard) {
 				// 	try {
@@ -112,9 +112,11 @@ export default class Bot {
 				// }
 
 				if (command.guards) {
-					for (const guard of command.guards) {
+					for (const GuardCreator of command.guards) {
+						const guard = new GuardCreator();
+
 						const result = await guard.execute(cache, interaction);
-						
+
 						if (!result) {
 							await interaction.followUp({ embeds: [Embeds.forBad(guard.message)] });
 							return;
@@ -161,7 +163,7 @@ export default class Bot {
 				const menu = this.menuFiles.get(interaction.customId);
 				if (!menu) return;
 
-				const helper = new MenuHelper(interaction, cache);
+				const helper = new MenuInteractionHelper(interaction, cache);
 
 				try {
 					await menu.execute(helper);
@@ -209,7 +211,9 @@ export default class Bot {
 				}
 
 				if (command.guards) {
-					for (const guard of command.guards) {
+					for (const GuardCreator of command.guards) {
+						const guard = new GuardCreator();
+
 						const result = await guard.execute(cache, message);
 
 						if (!result) {
@@ -227,7 +231,7 @@ export default class Bot {
 					return;
 				}
 
-				const helper = new MessageCommandHelper(message, options, cache);
+				const helper = new MessageInteractionHelper(message, cache, options);
 
 				// if (command.guard) {
 				// 	try {

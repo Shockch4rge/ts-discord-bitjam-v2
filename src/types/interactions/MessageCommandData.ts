@@ -1,12 +1,13 @@
-import { MessageCommandHelper } from "../../helpers/MessageCommandHelper";
-import { Guard } from "../Guard";
+import { MessageInteractionHelper } from "../../helpers/MessageInteractionHelper";
+import { Guard, GuardCreator } from "../Guard";
 
 
-import type { MessageCommandBuilder } from 'djs-message-commands';
+import type { MessageCommandBuilder } from "djs-message-commands";
+
 export type MessageCommandData = {
 	builder: MessageCommandBuilder;
 
-	guards?: Guard[];
+	guards?: GuardCreator[];
 
-	execute: (helper: MessageCommandHelper) => Promise<void>;
+	execute: (helper: MessageInteractionHelper) => Promise<void>;
 };
