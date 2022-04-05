@@ -1,11 +1,18 @@
-import { ButtonInteraction, MessageEmbed, WebhookEditMessageOptions } from 'discord.js';
+import { ButtonInteraction, MessageEmbed, WebhookEditMessageOptions } from "discord.js";
 
-import GuildCache from '../app/GuildCache';
-import { InteractionHelper } from './InteractionHelper';
+import GuildCache from "../app/GuildCache";
+import {
+    InteractionResponseOptions, MessageComponentInteractionHelperProps
+} from "../types/InteractionHelper";
 
-export class ButtonHelper extends InteractionHelper<ButtonInteraction> {
+
+export class ButtonHelper implements MessageComponentInteractionHelperProps<ButtonInteraction> {
+	public interaction: ButtonInteraction;
+	public cache: GuildCache;
+
 	public constructor(interaction: ButtonInteraction, guildCache: GuildCache) {
-		super(interaction, guildCache);
+		this.interaction = interaction;
+		this.cache = guildCache;
 	}
 
 	public async update(options: MessageEmbed | WebhookEditMessageOptions | string) {

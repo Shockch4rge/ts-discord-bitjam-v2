@@ -1,17 +1,23 @@
-import { MessageEmbed, SelectMenuInteraction, WebhookEditMessageOptions } from "discord.js";
+import {
+    CacheType, MessageEmbed, SelectMenuInteraction, WebhookEditMessageOptions
+} from "discord.js";
 
 import GuildCache from "../app/GuildCache";
-import { InteractionHelper } from "./InteractionHelper";
+import {
+    InteractionResponseOptions, MessageComponentInteractionHelperProps
+} from "../types/InteractionHelper";
 
 
-export class MenuHelper extends InteractionHelper<SelectMenuInteraction> {
+export class MenuHelper implements MessageComponentInteractionHelperProps<SelectMenuInteraction> {
+	public interaction: SelectMenuInteraction<CacheType>;
+	public cache: GuildCache;
+
 	public constructor(interaction: SelectMenuInteraction, guildCache: GuildCache) {
-		super(interaction, guildCache);
+		this.interaction = interaction;
+		this.cache = guildCache;
 	}
 
-	public get values() {
-		return this.interaction.values;
-	}
+	public async respond(options: InteractionResponseOptions): Promise<void> {}
 
 	public async update(options: MessageEmbed | WebhookEditMessageOptions | string) {
 		if (options instanceof MessageEmbed) {
