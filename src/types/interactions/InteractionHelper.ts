@@ -3,7 +3,7 @@ import {
     MessageEmbed, SelectMenuInteraction, WebhookEditMessageOptions, WebhookMessageOptions
 } from "discord.js";
 
-import GuildCache from "../app/GuildCache";
+import GuildCache from "../../app/GuildCache";
 
 
 export type InteractionResponseOptions = MessageEmbed | WebhookEditMessageOptions | string;
