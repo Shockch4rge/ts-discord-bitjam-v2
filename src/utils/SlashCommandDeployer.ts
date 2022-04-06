@@ -1,12 +1,13 @@
-import 'dotenv/config';
+import "dotenv/config";
 
-import { Routes } from 'discord-api-types/v9';
-import { Collection } from 'discord.js';
+import { Routes } from "discord-api-types/v9";
+import { Collection } from "discord.js";
 
-import { REST } from '@discordjs/rest';
+import { REST } from "@discordjs/rest";
 
-import config from '../../config.json';
-import { SlashCommandData } from '../types/interactions';
+import config from "../../config.json";
+import { SlashCommandData } from "../typings/interactions";
+
 
 export class SlashCommandDeployer {
 	public static async deploy(guildId: string, slashCommandFiles: Collection<string, SlashCommandData>) {

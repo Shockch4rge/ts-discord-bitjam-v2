@@ -3,7 +3,7 @@ import { Message, MessageEmbed, WebhookEditMessageOptions } from "discord.js";
 import GuildCache from "../app/GuildCache";
 import {
     InteractionResponseOptions, MessageInteractionHelperProps
-} from "../types/interactions/InteractionHelper";
+} from "../typings/interactions/InteractionHelper";
 
 
 export class MessageInteractionHelper implements MessageInteractionHelperProps {
@@ -11,7 +11,7 @@ export class MessageInteractionHelper implements MessageInteractionHelperProps {
 	public readonly cache: GuildCache;
 	public readonly options: unknown[];
 	public clientReply?: Message;
-	
+
 	public constructor(interaction: Message, guildCache: GuildCache, options: unknown[]) {
 		this.interaction = interaction;
 		this.cache = guildCache;
@@ -37,7 +37,7 @@ export class MessageInteractionHelper implements MessageInteractionHelperProps {
 		}
 	}
 
-	public async edit(options: MessageEmbed | WebhookEditMessageOptions | string) {
+	public async editReply(options: MessageEmbed | WebhookEditMessageOptions | string) {
 		if (options instanceof MessageEmbed) {
 			await this.clientReply?.edit({ embeds: [options] }).catch(() => {});
 		} else if (typeof options === "object") {

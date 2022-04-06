@@ -2,8 +2,7 @@ import { MessageEmbed } from "discord.js";
 
 import { SlashCommandBuilder } from "@discordjs/builders";
 
-import { SlashCommandData } from "../../../types/interactions";
-import { BotVoiceChannelOnly } from "../../../utils/guards/BotVoiceChannelOnly";
+import { SlashCommandData } from "../../../typings/interactions";
 
 
 const command: SlashCommandData = {

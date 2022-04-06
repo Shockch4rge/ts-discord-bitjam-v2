@@ -3,7 +3,7 @@ import { CacheType, CommandInteraction, MessageEmbed } from "discord.js";
 import GuildCache from "../app/GuildCache";
 import {
     InteractionResponseOptions, SlashInteractionHelperProps
-} from "../types/interactions/InteractionHelper";
+} from "../typings/interactions/InteractionHelper";
 
 
 export class SlashInteractionHelper implements SlashInteractionHelperProps {
@@ -25,7 +25,7 @@ export class SlashInteractionHelper implements SlashInteractionHelperProps {
 		}
 	}
 
-	public async edit(options: InteractionResponseOptions) {}
+	public async editReply(options: InteractionResponseOptions) {}
 
 	public mentionable(name: string) {
 		return this.interaction.options.getMentionable(name);

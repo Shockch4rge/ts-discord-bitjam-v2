@@ -1,12 +1,10 @@
 import { MessageActionRow, MessageSelectMenu } from "discord.js";
 
-import { Track } from "../../types/track";
+import { Track } from "../../typings/track";
 import { Utils } from "../Utils";
 
 
-type MenuComponents = Readonly<Record<`for${string}`, (...args: any[]) => MessageSelectMenu>>;
-
-export const Menus: MenuComponents = {
+export const Menus = {
 	forTrackSelection: (tracks: Track[]) =>
 		new MessageSelectMenu()
 			.setCustomId("track-selection")

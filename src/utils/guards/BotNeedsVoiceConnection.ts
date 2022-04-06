@@ -1,5 +1,5 @@
 import GuildCache from "../../app/GuildCache";
-import { Guard } from "../../types/Guard";
+import { Guard } from "../../typings/Guard";
 
 
 export class BotNeedsVoiceConnection extends Guard {

@@ -1,13 +1,5 @@
-import "dotenv/config";
-
 import { Client, Collection, Guild } from "discord.js";
-import { initializeApp } from "firebase/app";
-import {
-    collection, CollectionReference, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore,
-    setDoc
-} from "firebase/firestore";
 
-import config from "../../config.json";
 import { FireStore } from "./FireStore";
 import GuildCache from "./GuildCache";
 

@@ -1,6 +1,6 @@
 import YTMusic from "ytmusic-api";
 
-import { Track } from "../types/track";
+import { Track } from "../typings/track";
 
 
 export class TrackSearcher {

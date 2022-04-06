@@ -1,9 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { MessageCommandBuilder } from "djs-message-commands";
 
-import { MessageCommandData } from "../../../types/interactions";
-import { BotNeedsVoiceConnection } from "../../../utils/guards/BotNeedsVoiceConnection";
-import { BotVoiceChannelOnly } from "../../../utils/guards/BotVoiceChannelOnly";
+import { MessageCommandData } from "../../../typings/interactions";
 
 
 const command: MessageCommandData = {
@@ -12,7 +10,7 @@ const command: MessageCommandData = {
 	execute: async helper => {
 		await helper.respond(
 			new MessageEmbed()
-				.setAuthor({ name: `🕕  Pong! ${helper.message.client.ws.ping}ms` })
+				.setAuthor({ name: `🕕  Pong! ${helper.interaction.client.ws.ping}ms` })
 				.setColor("GOLD")
 		);
 	},

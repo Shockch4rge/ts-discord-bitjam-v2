@@ -1,7 +1,7 @@
 import { ButtonInteraction, MessageEmbed, WebhookEditMessageOptions } from "discord.js";
 
 import GuildCache from "../app/GuildCache";
-import { MessageComponentInteractionHelperProps } from "../types/interactions/InteractionHelper";
+import { MessageComponentInteractionHelperProps } from "../typings/interactions/InteractionHelper";
 
 
 export class ButtonHelper implements MessageComponentInteractionHelperProps<ButtonInteraction> {

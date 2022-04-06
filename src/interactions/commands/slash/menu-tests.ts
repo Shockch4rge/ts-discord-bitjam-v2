@@ -2,7 +2,7 @@ import { GuildMember, MessageActionRow, MessageEmbed } from "discord.js";
 
 import { SlashCommandBuilder } from "@discordjs/builders";
 
-import { SlashCommandData } from "../../../types/interactions";
+import { SlashCommandData } from "../../../typings/interactions";
 import { Menus } from "../../../utils/components/Menus";
 
 

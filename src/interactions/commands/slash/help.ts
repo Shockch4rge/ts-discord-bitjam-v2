@@ -1,6 +1,7 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder } from "@discordjs/builders";
 
-import { SlashCommandData } from '../../../types/interactions';
+import { SlashCommandData } from "../../../typings/interactions";
+
 
 const command: SlashCommandData = {
 	builder: new SlashCommandBuilder().setName("help").setDescription("Displays this help message."),

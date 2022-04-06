@@ -5,14 +5,11 @@ import { MessageCommandData } from "../../../typings/interactions";
 
 const command: MessageCommandData = {
 	builder: new MessageCommandBuilder()
-		.setName("play")
-		.setDescription("Play a song.")
-		.setAliases(["p"])
-		.addStringOption(option => option.setName("query").setDescription("Query for the song")),
+		.setName("playlist-add")
+		.setDescription("Add a song to one of your customised playlists.")
+		.setAliases(["pla"]),
 
 	execute: async helper => {
-		const [query] = helper.options as [string];
-		await helper.respond(`Playing ${query}`);
 	},
 };
 

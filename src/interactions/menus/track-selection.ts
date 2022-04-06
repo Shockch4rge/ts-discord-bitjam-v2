@@ -1,4 +1,5 @@
-import { MenuData } from '../../types/interactions';
+import { MenuData } from "../../typings/interactions";
+
 
 const menu: MenuData = {
 	id: "track-selection",

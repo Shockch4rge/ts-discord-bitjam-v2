@@ -1,7 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { MessageCommandBuilder } from "djs-message-commands";
 
-import { MessageCommandData } from "../../../types/interactions";
+import { MessageCommandData } from "../../../typings/interactions";
 
 
 const command: MessageCommandData = {
@@ -14,10 +14,10 @@ const command: MessageCommandData = {
 		),
 
 	execute: async helper => {
-		const channel = helper.message.channel;
+		const channel = helper.interaction.channel;
 		const [prefix] = helper.options as [string];
 
-		await helper.cache.setPrefix(prefix);
+		await helper.cache.db.setPrefix(helper.interaction.guildId!, prefix);
 		await channel.send({
 			embeds: [new MessageEmbed().setAuthor({ name: `✅  Set message command prefix to '${prefix}'` })],
 		});

@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { Client, Collection } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
@@ -11,7 +9,7 @@ import { ButtonHelper } from "./helpers/ButtonInteractionHelper";
 import { MenuInteractionHelper } from "./helpers/MenuInteractionHelper";
 import { MessageInteractionHelper } from "./helpers/MessageInteractionHelper";
 import { SlashInteractionHelper } from "./helpers/SlashInteractionHelper";
-import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from "./types/interactions";
+import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from "./typings/interactions";
 import { Embeds } from "./utils/components/Embeds";
 import { logger } from "./utils/logger";
 import { SlashCommandDeployer } from "./utils/SlashCommandDeployer";
@@ -100,36 +98,28 @@ export default class Bot {
 
 				const helper = new SlashInteractionHelper(interaction, cache);
 
-				// if (command.guard) {
-				// 	try {
-				// 		await command.guard.test(helper);
-				// 		logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild!.name}`);
-				// 	} catch (err) {
-				// 		await command.guard.reject(err as Error, helper);
-				// 		logger.info(`[SLASH_COMMAND_GUARD_FAIL]: ${(err as Error).message}`);
-				// 		return;
-				// 	}
-				// }
-
 				if (command.guards) {
 					for (const GuardCreator of command.guards) {
 						const guard = new GuardCreator();
 
-						const result = await guard.execute(cache, interaction);
+						const passed = await guard.execute(cache, interaction);
 
-						if (!result) {
-							await interaction.followUp({ embeds: [Embeds.forBad(guard.message)] });
+						if (!passed) {
+							await helper.respond(Embeds.forBad(guard.message));
+							logger.info(`[SLASH_COMMAND_GUARD_FAIL]:\n(${guard.name}): ${guard.message}`);
 							return;
 						}
+
+						logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild!.name}`);
 					}
 				}
 
 				try {
 					await command.execute(helper);
-					logger.info(`[SLASH_COMMAND_EXECUTE]: ${command.builder.name}`);
+					logger.info(`[SLASH_COMMAND_EXECUTE_PASS]: ${command.builder.name}`);
 				} catch (err) {
 					logger.error(
-						`[SLASH_COMMAND_EXECUTE_ERROR]:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
+						`[SLASH_COMMAND_EXECUTE_FAIL]:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
 					);
 				}
 
@@ -144,7 +134,7 @@ export default class Bot {
 
 				try {
 					await button.execute(helper);
-					logger.info(`[BUTTON_EXECUTE]: ${button.id}`);
+					logger.info(`[BUTTON_EXECUTE_PASS]: ${button.id}`);
 				} catch (err) {
 					await helper
 						.update({
@@ -167,7 +157,7 @@ export default class Bot {
 
 				try {
 					await menu.execute(helper);
-					logger.info(`[MENU_EXECUTE]: ${menu.id}`);
+					logger.info(`[MENU_EXECUTE_PASS]: ${menu.id}`);
 				} catch (err) {
 					await helper
 						.update({
@@ -175,7 +165,7 @@ export default class Bot {
 							components: [],
 						})
 						.catch(() => {});
-					logger.error(`[MENU_EXECUTE_ERROR]: \nID: ${menu.id} Error: ${(err as Error).message}`);
+					logger.error(`[MENU_EXECUTE_FAIL]: \nID: ${menu.id} Error: ${(err as Error).message}`);
 				}
 
 				return;
@@ -214,12 +204,15 @@ export default class Bot {
 					for (const GuardCreator of command.guards) {
 						const guard = new GuardCreator();
 
-						const result = await guard.execute(cache, message);
+						const passed = await guard.execute(cache, message);
 
-						if (!result) {
+						if (!passed) {
 							await message.reply({ embeds: [Embeds.forBad(guard.message)] });
+							logger.info(`[MESSAGE_COMMAND_GUARD_FAIL]:\n(${guard.name}): ${guard.message}`);
 							return;
 						}
+
+						logger.info(`[MESSAGE_COMMAND_GUARD_PASS] ${message.guild!.name}`);
 					}
 				}
 
@@ -233,23 +226,12 @@ export default class Bot {
 
 				const helper = new MessageInteractionHelper(message, cache, options);
 
-				// if (command.guard) {
-				// 	try {
-				// 		await command.guard.test(helper);
-				// 	} catch (err) {
-				// 		await command.guard.reject(err as Error, helper);
-				// 		await message.delete().catch(() => {});
-				// 		logger.info(`[MESSAGE_COMMAND_REJECT]: ${(err as Error).message}`);
-				// 		return;
-				// 	}
-				// }
-
 				try {
 					await command.execute(helper);
-					logger.info(`[MESSAGE_COMMAND_EXECUTE]: ${command.builder.name}`);
+					logger.info(`[MESSAGE_COMMAND_EXECUTE_PASS]: ${command.builder.name}`);
 				} catch (err) {
 					logger.error(
-						`[MESSAGE_COMMAND_EXECUTE_ERROR]:\nName: ${command.builder.name}\nDescription: ${
+						`[MESSAGE_COMMAND_EXECUTE_FAIL]:\nName: ${command.builder.name}\nDescription: ${
 							command.builder.description
 						}\nError: ${(err as Error).message}`
 					);

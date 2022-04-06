@@ -1,5 +1,6 @@
 import { TrackData } from "./";
 
+
 export class Track implements TrackData {
 	public readonly title: string;
 	public readonly description?: string;

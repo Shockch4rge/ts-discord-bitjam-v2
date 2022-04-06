@@ -1,11 +1,10 @@
 import { GuildMember, Interaction, Message } from "discord.js";
 
 import GuildCache from "../../app/GuildCache";
-import { Guard, GuardCreator } from "../../types/Guard";
+import { Guard } from "../../typings/Guard";
 
 
 export class BotVoiceChannelOnly extends Guard {
-
 	public constructor() {
 		super({
 			name: "BotVoiceChannelOnly",

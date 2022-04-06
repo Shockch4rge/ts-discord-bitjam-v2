@@ -6,15 +6,15 @@ import { BotVoiceChannelOnly } from "../../../utils/guards/BotVoiceChannelOnly";
 
 
 const command: MessageCommandData = {
-	builder: new MessageCommandBuilder()
-		.setName("queue")
-		.setDescription("Shows the current queue.")
-		.setAliases(["q"])
-		.addNumberOption(option => option.setName("page").setDescription("Page number")),
+	builder: new MessageCommandBuilder().setName("pause").setDescription("Pause the current song."),
 
-	guards: [BotVoiceChannelOnly, BotNeedsVoiceConnection],
+	guards: [BotNeedsVoiceConnection, BotVoiceChannelOnly],
 
-	execute: async helper => {},
+	execute: async helper => {
+		await helper.respond("Pausing the current song...");
+
+		await helper.editReply("Paused!");
+	},
 };
 
 module.exports = command;

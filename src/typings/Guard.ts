@@ -20,4 +20,4 @@ export interface GuardData {
 	message: string;
 }
 
-export type GuardCreator = Constructor<Guard>;
+export type GuardCreator = new () => Guard;

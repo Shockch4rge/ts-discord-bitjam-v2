@@ -5,7 +5,7 @@ import {
 } from "firebase/firestore";
 
 import config from "../../config.json";
-import { Playlist } from "../types/playlist";
+import { Playlist } from "../typings/playlist";
 
 
 export class FireStore {

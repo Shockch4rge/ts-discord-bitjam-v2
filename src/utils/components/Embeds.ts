@@ -3,13 +3,11 @@ import { MessageCommandBuilder, MessageCommandOptionChoiceable } from "djs-messa
 
 import { bold, formatEmoji, inlineCode } from "@discordjs/builders";
 
-import GuildCache from "../../app/GuildCache";
 import { QueueManager } from "../../app/QueueManager";
 import { Utils } from "../../utils/Utils";
 
-type EmbedComponents = Readonly<Record<`for${string}`, (...args: any[]) => MessageEmbed>>;
 
-export const Embeds: EmbedComponents = {
+export const Embeds = {
 	forGood: (title: string) => new MessageEmbed().setAuthor({ name: `✅  ${title}` }).setColor("GREEN"),
 
 	forBad: (title: string) => new MessageEmbed().setAuthor({ name: `❌  ${title}` }).setColor("RED"),
