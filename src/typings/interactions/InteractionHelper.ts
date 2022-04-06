@@ -1,5 +1,5 @@
 import {
-    CommandInteraction, Message, MessageComponentInteraction, MessageEmbed,
+    CommandInteraction, ContextMenuInteraction, Message, MessageComponentInteraction, MessageEmbed,
     WebhookEditMessageOptions
 } from "discord.js";
 
@@ -8,7 +8,7 @@ import GuildCache from "../../app/GuildCache";
 
 export type InteractionResponseOptions = MessageEmbed | WebhookEditMessageOptions | string;
 
-export type BaseInteractionHelperProps<I extends Message | CommandInteraction | MessageComponentInteraction> =
+export type BaseInteractionHelperProps<I extends Message | CommandInteraction | MessageComponentInteraction | ContextMenuInteraction> =
 	{
 		readonly interaction: I;
 		readonly cache: GuildCache;
@@ -27,4 +27,8 @@ export interface MessageInteractionHelperProps extends BaseInteractionHelperProp
 
 export interface SlashInteractionHelperProps extends BaseInteractionHelperProps<CommandInteraction> {
 	editReply: (options: InteractionResponseOptions) => Promise<void>;
+}
+
+export interface ContextMenuHelperProps extends BaseInteractionHelperProps<ContextMenuInteraction> {
+
 }

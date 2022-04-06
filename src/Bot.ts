@@ -6,15 +6,16 @@ import config from "../config.json";
 import BotCache from "./app/BotCache";
 import GuildCache from "./app/GuildCache";
 import { ButtonHelper } from "./helpers/ButtonInteractionHelper";
+import { ContextMenuInteractionHelper } from "./helpers/ContextMenuHelper";
 import { MessageInteractionHelper } from "./helpers/MessageInteractionHelper";
 import { SelectMenuInteractionHelper } from "./helpers/SelectMenuInteractionHelper";
 import { SlashInteractionHelper } from "./helpers/SlashInteractionHelper";
 import {
-    ButtonData, MessageCommandData, SelectMenuData, SlashCommandData
+    ButtonData, ContextMenuData, MessageCommandData, SelectMenuData, SlashCommandData
 } from "./typings/interactions";
+import { SlashCommandDeployer as CommandDeployer } from "./utils/CommandDeployer";
 import { Embeds } from "./utils/components/Embeds";
 import { logger } from "./utils/logger";
-import { SlashCommandDeployer } from "./utils/SlashCommandDeployer";
 import { Utils } from "./utils/Utils";
 
 
@@ -23,8 +24,9 @@ export default class Bot {
 	public readonly cache: BotCache;
 	public readonly slashCommandFiles: Collection<string, SlashCommandData>;
 	public readonly buttonFiles: Collection<string, ButtonData>;
-	public readonly menuFiles: Collection<string, SelectMenuData>;
+	public readonly selectMenuFiles: Collection<string, SelectMenuData>;
 	public readonly messageCommandFiles: Collection<string, MessageCommandData>;
+	public readonly contextMenuFiles: Collection<string, ContextMenuData>;
 
 	public constructor() {
 		this.bot = new Client({
@@ -33,16 +35,15 @@ export default class Bot {
 		this.cache = new BotCache(this.bot);
 		this.slashCommandFiles = new Collection();
 		this.buttonFiles = new Collection();
-		this.menuFiles = new Collection();
+		this.selectMenuFiles = new Collection();
 		this.messageCommandFiles = new Collection();
+		this.contextMenuFiles = new Collection();
 	}
 
-	/**
-	 * Initialise bot events and interaction/message commands
-	 */
 	public initialise() {
 		this.setSlashCommandInteractions();
 		this.setSelectMenuInteractions();
+		this.setContextMenuInteractions();
 		this.setMessageCommands();
 		this.registerClientEvents();
 
@@ -51,7 +52,7 @@ export default class Bot {
 	}
 
 	private registerClientEvents() {
-		this.bot.on("ready", async bot => {
+		this.bot.once("ready", async bot => {
 			const guilds = bot.guilds.cache.toJSON();
 
 			for (const guild of guilds) {
@@ -62,7 +63,7 @@ export default class Bot {
 				}
 
 				try {
-					await SlashCommandDeployer.deploy(guild.id, this.slashCommandFiles);
+					await CommandDeployer.deploy(guild.id, this.slashCommandFiles, this.contextMenuFiles);
 				} catch (err) {
 					logger.error(`[SLASH_COMMAND_DEPLOY_FAIL] ${guild.name}: ${(err as Error).message}`);
 				}
@@ -146,7 +147,7 @@ export default class Bot {
 			}
 
 			if (interaction.isSelectMenu()) {
-				const menu = this.menuFiles.get(interaction.customId);
+				const menu = this.selectMenuFiles.get(interaction.customId);
 				if (!menu) return;
 
 				const helper = new SelectMenuInteractionHelper(interaction, cache);
@@ -165,6 +166,17 @@ export default class Bot {
 				}
 
 				return;
+			}
+
+			if (interaction.isContextMenu()) {
+				const menu = this.contextMenuFiles.get(interaction.commandName);
+				if (!menu) return;
+
+				const helper = new ContextMenuInteractionHelper(interaction, cache);
+
+				if (menu.type === "client" && interaction.targetId !== this.bot.user!.id) {
+					await helper.respond("This command can only be used on the bot user!")
+				}
 			}
 		});
 
@@ -262,10 +274,22 @@ export default class Bot {
 
 		for (const name of names) {
 			const data = require(path.join(folder, name)) as SelectMenuData;
-			this.menuFiles.set(data.id, data);
+			this.selectMenuFiles.set(data.id, data);
 		}
 
-		logger.info("Menu interactions loaded");
+		logger.info("Select menu interactions loaded");
+	}
+
+	private setContextMenuInteractions() {
+		const folder = path.join(__dirname, `./interactions/menus/context`);
+		const names = fs.readdirSync(folder).filter(this.isFile);
+
+		for (const name of names) {
+			const data = require(path.join(folder, name)) as ContextMenuData;
+			this.contextMenuFiles.set(data.name, data);
+		}
+
+		logger.info("Context menu interactions loaded");
 	}
 
 	private setMessageCommands() {
