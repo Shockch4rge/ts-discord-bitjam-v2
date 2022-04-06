@@ -4,7 +4,6 @@ import path from "node:path";
 
 import config from "../config.json";
 import BotCache from "./app/BotCache";
-import GuildCache from "./app/GuildCache";
 import { ButtonHelper } from "./helpers/ButtonInteractionHelper";
 import { ContextMenuInteractionHelper } from "./helpers/ContextMenuHelper";
 import { MessageInteractionHelper } from "./helpers/MessageInteractionHelper";
@@ -13,7 +12,7 @@ import { SlashInteractionHelper } from "./helpers/SlashInteractionHelper";
 import {
     ButtonData, ContextMenuData, MessageCommandData, SelectMenuData, SlashCommandData
 } from "./typings/interactions";
-import { SlashCommandDeployer as CommandDeployer } from "./utils/CommandDeployer";
+import { CommandDeployer } from "./utils/CommandDeployer";
 import { Embeds } from "./utils/components/Embeds";
 import { logger } from "./utils/logger";
 import { Utils } from "./utils/Utils";
@@ -65,10 +64,10 @@ export default class Bot {
 				try {
 					await CommandDeployer.deploy(guild.id, this.slashCommandFiles, this.contextMenuFiles);
 				} catch (err) {
-					logger.error(`[SLASH_COMMAND_DEPLOY_FAIL] ${guild.name}: ${(err as Error).message}`);
+					logger.error(`[COMMAND_DEPLOY_FAIL] ${guild.name}: ${(err as Error).message}`);
 				}
 
-				logger.info(`✅ Deployed slash commands in ${guild.name}`);
+				logger.info(`✅ Deployed commands in ${guild.name}`);
 
 				guild.me!.setNickname("⏱ BitJam | Idle");
 			}
@@ -172,11 +171,17 @@ export default class Bot {
 				const menu = this.contextMenuFiles.get(interaction.commandName);
 				if (!menu) return;
 
+				await interaction.deferReply({ ephemeral: menu.ephemeral ?? true }).catch(() => {});
+
 				const helper = new ContextMenuInteractionHelper(interaction, cache);
 
 				if (menu.type === "client" && interaction.targetId !== this.bot.user!.id) {
-					await helper.respond("This command can only be used on the bot user!")
+					await helper.respond("This command can only be used on the bot!");
+					return;
 				}
+
+				await menu.execute(helper);
+				return;
 			}
 		});
 
@@ -269,7 +274,7 @@ export default class Bot {
 	}
 
 	private setSelectMenuInteractions() {
-		const folder = path.join(__dirname, `./interactions/menus/select`);
+		const folder = path.join(__dirname, `./interactions/select-menus`);
 		const names = fs.readdirSync(folder).filter(this.isFile);
 
 		for (const name of names) {
@@ -281,7 +286,7 @@ export default class Bot {
 	}
 
 	private setContextMenuInteractions() {
-		const folder = path.join(__dirname, `./interactions/menus/context`);
+		const folder = path.join(__dirname, `./interactions/context-menu`);
 		const names = fs.readdirSync(folder).filter(this.isFile);
 
 		for (const name of names) {
@@ -314,7 +319,7 @@ export default class Bot {
 			}
 		}
 
-		logger.info("Message commands loaded");
+		logger.info("Message command interactions loaded");
 	}
 
 	private isFile(file: string) {
