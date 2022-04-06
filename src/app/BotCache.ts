@@ -15,14 +15,8 @@ export default class BotCache {
 		this.guildCaches = new Collection();
 	}
 
-	public async getGuildCache(guild: Guild) {
-		let cache = this.guildCaches.get(guild.id);
-
-		if (!cache) {
-			cache = await this.createGuildCache(guild);
-		}
-
-		return cache;
+	public getGuildCache(id: string) {
+		return this.guildCaches.get(id)!;
 	}
 
 	public async createGuildCache(guild: Guild) {

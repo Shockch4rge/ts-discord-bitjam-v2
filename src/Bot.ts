@@ -53,10 +53,8 @@ export default class Bot {
 			const guilds = bot.guilds.cache.toJSON();
 
 			for (const guild of guilds) {
-				let cache: GuildCache;
-
 				try {
-					cache = await this.cache.getGuildCache(guild);
+					await this.cache.createGuildCache(guild);
 				} catch (err) {
 					logger.error(`Couldn't find ${guild.name}`);
 				}
@@ -84,17 +82,13 @@ export default class Bot {
 		});
 
 		this.bot.on("interactionCreate", async interaction => {
-			const cache = await this.cache.getGuildCache(interaction.guild!);
+			const cache = this.cache.getGuildCache(interaction.guildId!);
 
 			if (interaction.isCommand()) {
 				const command = this.slashCommandFiles.get(interaction.commandName);
 				if (!command) return;
 
-				await interaction
-					.deferReply({
-						ephemeral: command.ephemeral ?? true,
-					})
-					.catch(() => {});
+				await interaction.deferReply({ ephemeral: command.ephemeral ?? true }).catch(() => {});
 
 				const helper = new SlashInteractionHelper(interaction, cache);
 
@@ -178,7 +172,7 @@ export default class Bot {
 			if (!message.guild) return;
 
 			const channel = message.channel;
-			const cache = await this.cache.getGuildCache(message.guild);
+			const cache = this.cache.getGuildCache(message.guildId!);
 
 			if (channel.isText()) {
 				const args = message.content.trim().split(/\s+/);
@@ -194,7 +188,11 @@ export default class Bot {
 				await channel.sendTyping();
 
 				if (!command) {
-					const warning = await message.reply("That command doesn't exist!");
+					const warning = await message.reply({
+						embeds: [
+							Embeds.forBad(`Command not found! Use ${cache.prefix}help to view all commands.`),
+						],
+					});
 					await Utils.delay(5000);
 					await warning.delete().catch(() => {});
 					return;
@@ -236,8 +234,6 @@ export default class Bot {
 						}\nError: ${(err as Error).message}`
 					);
 				}
-
-				return;
 			}
 		});
 
