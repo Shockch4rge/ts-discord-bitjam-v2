@@ -1,4 +1,4 @@
-import { SelectMenuData } from "../../../typings/interactions";
+import { SelectMenuData } from "../../typings/interactions";
 
 
 const menu: SelectMenuData = {
