@@ -1,11 +1,11 @@
-import { MenuInteractionHelper } from "../../helpers/MenuInteractionHelper";
+import { SelectMenuInteractionHelper } from "../../helpers/SelectMenuInteractionHelper";
 import { GuardCreator } from "../Guard";
 
 
-export type MenuData = {
+export type SelectMenuData = {
 	id: string;
 
 	guards?: GuardCreator[];
 
-	execute: (helper: MenuInteractionHelper) => Promise<void>;
+	execute: (helper: SelectMenuInteractionHelper) => Promise<void>;
 };

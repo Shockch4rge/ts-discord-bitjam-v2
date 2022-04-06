@@ -4,7 +4,7 @@ import GuildCache from "../app/GuildCache";
 import { MessageComponentInteractionHelperProps } from "../typings/interactions/InteractionHelper";
 
 
-export class MenuInteractionHelper implements MessageComponentInteractionHelperProps<SelectMenuInteraction> {
+export class SelectMenuInteractionHelper implements MessageComponentInteractionHelperProps<SelectMenuInteraction> {
 	public readonly interaction: SelectMenuInteraction;
 	public readonly cache: GuildCache;
 

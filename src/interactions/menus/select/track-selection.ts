@@ -1,7 +1,7 @@
-import { MenuData } from "../../typings/interactions";
+import { SelectMenuData } from "../../../typings/interactions";
 
 
-const menu: MenuData = {
+const menu: SelectMenuData = {
 	id: "track-selection",
 
 	execute: async helper => {

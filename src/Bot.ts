@@ -6,10 +6,12 @@ import config from "../config.json";
 import BotCache from "./app/BotCache";
 import GuildCache from "./app/GuildCache";
 import { ButtonHelper } from "./helpers/ButtonInteractionHelper";
-import { MenuInteractionHelper } from "./helpers/MenuInteractionHelper";
 import { MessageInteractionHelper } from "./helpers/MessageInteractionHelper";
+import { SelectMenuInteractionHelper } from "./helpers/SelectMenuInteractionHelper";
 import { SlashInteractionHelper } from "./helpers/SlashInteractionHelper";
-import { ButtonData, MenuData, MessageCommandData, SlashCommandData } from "./typings/interactions";
+import {
+    ButtonData, MessageCommandData, SelectMenuData, SlashCommandData
+} from "./typings/interactions";
 import { Embeds } from "./utils/components/Embeds";
 import { logger } from "./utils/logger";
 import { SlashCommandDeployer } from "./utils/SlashCommandDeployer";
@@ -21,7 +23,7 @@ export default class Bot {
 	public readonly cache: BotCache;
 	public readonly slashCommandFiles: Collection<string, SlashCommandData>;
 	public readonly buttonFiles: Collection<string, ButtonData>;
-	public readonly menuFiles: Collection<string, MenuData>;
+	public readonly menuFiles: Collection<string, SelectMenuData>;
 	public readonly messageCommandFiles: Collection<string, MessageCommandData>;
 
 	public constructor() {
@@ -39,9 +41,9 @@ export default class Bot {
 	 * Initialise bot events and interaction/message commands
 	 */
 	public initialise() {
-		this.saveSlashCommandInteractions();
-		this.saveMenuInteractions();
-		this.saveMessageCommands();
+		this.setSlashCommandInteractions();
+		this.setSelectMenuInteractions();
+		this.setMessageCommands();
 		this.registerClientEvents();
 
 		//TODO: replace with env var
@@ -147,7 +149,7 @@ export default class Bot {
 				const menu = this.menuFiles.get(interaction.customId);
 				if (!menu) return;
 
-				const helper = new MenuInteractionHelper(interaction, cache);
+				const helper = new SelectMenuInteractionHelper(interaction, cache);
 
 				try {
 					await menu.execute(helper);
@@ -242,7 +244,7 @@ export default class Bot {
 		});
 	}
 
-	private saveSlashCommandInteractions() {
+	private setSlashCommandInteractions() {
 		const folder = path.join(__dirname, `./interactions/commands/slash`);
 		const names = fs.readdirSync(folder).filter(this.isFile);
 
@@ -254,19 +256,19 @@ export default class Bot {
 		logger.info("Slash command interactions loaded");
 	}
 
-	private saveMenuInteractions() {
-		const folder = path.join(__dirname, `./interactions/menus`);
+	private setSelectMenuInteractions() {
+		const folder = path.join(__dirname, `./interactions/menus/select`);
 		const names = fs.readdirSync(folder).filter(this.isFile);
 
 		for (const name of names) {
-			const data = require(path.join(folder, name)) as MenuData;
+			const data = require(path.join(folder, name)) as SelectMenuData;
 			this.menuFiles.set(data.id, data);
 		}
 
 		logger.info("Menu interactions loaded");
 	}
 
-	private saveMessageCommands() {
+	private setMessageCommands() {
 		const folder = path.join(__dirname, `./interactions/commands/message`);
 		const names = fs.readdirSync(folder).filter(this.isFile);
 
