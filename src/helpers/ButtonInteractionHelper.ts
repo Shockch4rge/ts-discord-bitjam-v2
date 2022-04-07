@@ -15,11 +15,11 @@ export class ButtonHelper implements MessageComponentInteractionHelperProps<Butt
 
 	public async update(options: MessageEmbed | WebhookEditMessageOptions | string) {
 		if (options instanceof MessageEmbed) {
-			await this.interaction.update({ embeds: [options] }).catch(() => {});
+			await this.interaction.update({ embeds: [options] });
 		} else if (typeof options === "object") {
-			await this.interaction.update(options).catch(() => {});
+			await this.interaction.update(options);
 		} else {
-			await this.interaction.update({ content: options }).catch(() => {});
+			await this.interaction.update({ content: options });
 		}
 	}
 }

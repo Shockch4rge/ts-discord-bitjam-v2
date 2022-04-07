@@ -4,7 +4,9 @@ import GuildCache from "../app/GuildCache";
 import { MessageComponentInteractionHelperProps } from "../typings/interactions/InteractionHelper";
 
 
-export class SelectMenuInteractionHelper implements MessageComponentInteractionHelperProps<SelectMenuInteraction> {
+export class SelectMenuInteractionHelper
+	implements MessageComponentInteractionHelperProps<SelectMenuInteraction>
+{
 	public readonly interaction: SelectMenuInteraction;
 	public readonly cache: GuildCache;
 
@@ -15,11 +17,11 @@ export class SelectMenuInteractionHelper implements MessageComponentInteractionH
 
 	public async update(options: MessageEmbed | WebhookEditMessageOptions | string) {
 		if (options instanceof MessageEmbed) {
-			await this.interaction.update({ embeds: [options] }).catch(() => {});
+			await this.interaction.update({ embeds: [options] });
 		} else if (typeof options === "object") {
 			await this.interaction.update(options);
 		} else {
-			await this.interaction.update({ content: options }).catch(() => {});
+			await this.interaction.update({ content: options });
 		}
 	}
 }

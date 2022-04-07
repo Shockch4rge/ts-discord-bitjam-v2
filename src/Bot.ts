@@ -84,7 +84,9 @@ export default class Bot {
 		});
 
 		this.bot.on("interactionCreate", async interaction => {
-			const cache = this.cache.getGuildCache(interaction.guildId!);
+			if (!interaction.guild) return;
+
+			const cache = this.cache.getGuildCache(interaction.guild.id);
 
 			if (interaction.isCommand()) {
 				const command = this.slashCommandFiles.get(interaction.commandName);
@@ -106,7 +108,7 @@ export default class Bot {
 							return;
 						}
 
-						logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild!.name}`);
+						logger.info(`[SLASH_COMMAND_GUARD_PASS] ${interaction.guild.name}`);
 					}
 				}
 
@@ -157,7 +159,7 @@ export default class Bot {
 				} catch (err) {
 					await helper
 						.update({
-							content: `❌ There was an error executing this menu!`,
+							embeds: [Embeds.forBad(`There was an error executing this menu!`)],
 							components: [],
 						})
 						.catch(() => {});
@@ -180,7 +182,18 @@ export default class Bot {
 					return;
 				}
 
-				await menu.execute(helper);
+				try {
+					await menu.execute(helper);
+				} catch (err) {
+					await helper
+						.respond({
+							embeds: [Embeds.forBad(`There was an error executing this command!`)],
+						})
+						.catch(() => {});
+					logger.error(
+						`[CONTEXT_COMMAND_EXECUTE_FAIL]: \nID: ${menu.name} Error: ${(err as Error).message}`
+					);
+				}
 				return;
 			}
 		});
@@ -207,13 +220,11 @@ export default class Bot {
 				await channel.sendTyping();
 
 				if (!command) {
-					const warning = await message.reply({
+					await message.reply({
 						embeds: [
 							Embeds.forBad(`Command not found! Use ${cache.prefix}help to view all commands.`),
 						],
 					});
-					await Utils.delay(5000);
-					await warning.delete().catch(() => {});
 					return;
 				}
 
@@ -254,6 +265,10 @@ export default class Bot {
 					);
 				}
 			}
+		});
+
+		this.bot.on("threadCreate", async thread => {
+			logger.info(`[THREAD_CREATE]: ${thread.id}`);
 		});
 
 		this.bot.on("guildDelete", async guild => {

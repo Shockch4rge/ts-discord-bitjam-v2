@@ -35,15 +35,17 @@ export class MessageInteractionHelper implements MessageInteractionHelperProps {
 				.then(reply => (this.clientReply = reply))
 				.catch(() => {});
 		}
+
+		return this.clientReply!;
 	}
 
 	public async editReply(options: MessageEmbed | WebhookEditMessageOptions | string) {
 		if (options instanceof MessageEmbed) {
-			await this.clientReply?.edit({ embeds: [options] }).catch(() => {});
+			return this.clientReply?.edit({ embeds: [options] });
 		} else if (typeof options === "object") {
-			await this.clientReply?.edit(options).catch(() => {});
+			return this.clientReply?.edit(options);
 		} else {
-			await this.clientReply?.edit({ content: options }).catch(() => {});
+			return this.clientReply?.edit({ content: options });
 		}
 	}
 }

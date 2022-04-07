@@ -17,15 +17,23 @@ export class SlashInteractionHelper implements SlashInteractionHelperProps {
 
 	public async respond(options: InteractionResponseOptions) {
 		if (options instanceof MessageEmbed) {
-			await this.interaction.followUp({ embeds: [options] }).catch(() => {});
+			return this.interaction.followUp({ embeds: [options] });
 		} else if (typeof options === "object") {
-			await this.interaction.followUp(options).catch(() => {});
+			return this.interaction.followUp(options);
 		} else {
-			await this.interaction.followUp(options).catch(() => {});
+			return this.interaction.followUp(options);
 		}
 	}
 
-	public async editReply(options: InteractionResponseOptions) {}
+	public async editReply(options: InteractionResponseOptions) {
+		if (options instanceof MessageEmbed) {
+			return this.interaction.editReply({ embeds: [options] });
+		} else if (typeof options === "object") {
+			return this.interaction.editReply(options);
+		} else {
+			return this.interaction.editReply({ content: options });
+		}
+	}
 
 	public mentionable(name: string) {
 		return this.interaction.options.getMentionable(name);
