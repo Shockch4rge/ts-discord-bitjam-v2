@@ -1,24 +1,25 @@
 import AfterEvery from "after-every";
-import { Client, Collection, Guild, GuildChannel } from "discord.js";
+import { Collection, Guild, GuildChannel } from "discord.js";
 
 import { formatEmoji } from "@discordjs/builders";
 
 import config from "../../config.json";
+import Bitjam from "../Bitjam";
 import { logger } from "../utils/logger";
 import { FireStore } from "./FireStore";
 import MusicService from "./MusicService";
 
 
 export default class GuildCache {
-	public readonly bot: Client;
+	public readonly client: Bitjam;
 	public readonly db: FireStore;
 	public readonly guild: Guild;
 	public readonly music: MusicService;
 	public readonly emojis: Collection<string, string>;
 	public readonly prefix: string;
 
-	public constructor(bot: Client, db: FireStore, guild: Guild, messagePrefix: string) {
-		this.bot = bot;
+	public constructor(client: Bitjam, db: FireStore, guild: Guild, messagePrefix: string) {
+		this.client = client;
 		this.db = db;
 		this.guild = guild;
 		this.music = new MusicService();
@@ -36,16 +37,16 @@ export default class GuildCache {
 	private resetBot() {
 		this.unnick();
 		if (this.guild.me!.voice.channel && this.guild.me!.voice.channel.members.size === 1) {
-			void this.guild.me!.voice.disconnect();
+			this.guild.me!.voice.disconnect();
 		}
 	}
 
 	public nick(name: string) {
-		void this.guild.me!.setNickname(name);
+		this.guild.me!.setNickname(name);
 	}
 
 	public unnick() {
-		void this.guild.me!.setNickname(null);
+		this.guild.me!.setNickname("⏱ BitJam | Idle");
 	}
 
 	public async affirmConnectionMinutely(channelId: string) {
