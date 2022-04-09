@@ -37,13 +37,13 @@ export default class Bitjam extends Client {
 		this.contextMenuInteractions = new Collection();
 		this.messageInteractions = new Collection();
 
-        this.setSlashCommandInteractions();
-        this.setButtonInteractions();
-        this.setSelectMenuInteractions();
-        this.setContextMenuInteractions()
-        this.setMessageCommands();
-        this.setupClientEvents();
-        
+		this.setSlashCommandInteractions();
+		this.setButtonInteractions();
+		this.setSelectMenuInteractions();
+		this.setContextMenuInteractions();
+		this.setMessageCommands();
+		this.setupClientEvents();
+
 		this.login(config.bot_token);
 	}
 
@@ -69,8 +69,6 @@ export default class Bitjam extends Client {
 				}
 
 				logger.info(`✅ Deployed commands in ${guild.name}`);
-
-				guild.me!.setNickname("⏱ BitJam | Idle");
 			}
 
 			this.user!.setActivity({
@@ -92,7 +90,7 @@ export default class Bitjam extends Client {
 			if (interaction.isCommand()) {
 				const command = this.slashInteractions.get(interaction.commandName);
 				if (!command) return;
-
+				
 				await interaction.deferReply({ ephemeral: command.ephemeral ?? true }).catch(() => {});
 
 				const helper = new SlashInteractionHelper(interaction, cache);
@@ -117,9 +115,13 @@ export default class Bitjam extends Client {
 					await command.execute(helper);
 					logger.info(`[SLASH_COMMAND_EXECUTE_PASS]: ${command.builder.name}`);
 				} catch (err) {
-					logger.error(
-						`[SLASH_COMMAND_EXECUTE_FAIL]:\nName: ${command.builder.name}\nDescription: ${command.builder.description}`
-					);
+					await helper
+						.respond(Embeds.forBad(`There was an error executing this command!`))
+						.catch(err =>
+							logger.error(
+								`[SLASH_COMMAND_EXECUTE_FAIL]:\nName: ${command.builder.name}\nDescription: ${command.builder.description}\nError: ${err.message}`
+							)
+						);
 				}
 
 				return;
@@ -137,11 +139,11 @@ export default class Bitjam extends Client {
 				} catch (err) {
 					await helper
 						.update({
-							content: `❌ There was an error executing this button!`,
+							embeds: [Embeds.forBad(`There was an error executing this button!`)],
 							components: [],
 						})
 						.catch(err =>
-							logger.error(`[BUTTON_EXECUTE_ERROR]:\nID: ${button.id} Error: ${err.message}`)
+							logger.error(`[BUTTON_EXECUTE_FAIL]:\nID: ${button.id} Error: ${err.message}`)
 						);
 				}
 
@@ -150,21 +152,22 @@ export default class Bitjam extends Client {
 
 			if (interaction.isSelectMenu()) {
 				const menu = this.selectMenuInteractions.get(interaction.customId);
+
 				if (!menu) return;
 
 				const helper = new SelectMenuInteractionHelper(interaction, cache);
 
 				try {
 					await menu.execute(helper);
-					logger.info(`[MENU_EXECUTE_PASS]: ${menu.id}`);
+					logger.info(`[MENU_EXECUTE_PASS]: '${menu.id}'`);
 				} catch (err) {
 					await helper
 						.update({
 							embeds: [Embeds.forBad(`There was an error executing this menu!`)],
 							components: [],
 						})
-						.catch(() => {});
-					logger.error(`[MENU_EXECUTE_FAIL]: \nID: ${menu.id} Error: ${(err as Error).message}`);
+						.catch(err => console.log(err));
+					logger.error(`[MENU_EXECUTE_FAIL]: \nID: '${menu.id}' Error: ${(err as Error)}`);
 				}
 
 				return;
@@ -179,7 +182,7 @@ export default class Bitjam extends Client {
 				const helper = new ContextMenuInteractionHelper(interaction, cache);
 
 				if (menu.type === "client" && interaction.targetId !== this.user!.id) {
-					await helper.respond("This command can only be used on the!");
+					await helper.respond("This command can only be used on the bot!");
 					return;
 				}
 
@@ -200,7 +203,7 @@ export default class Bitjam extends Client {
 		});
 
 		this.on("messageCreate", async message => {
-			if (message.author) return;
+			if (message.author.bot) return;
 			if (message.webhookId) return;
 			if (!message.guild) return;
 
@@ -288,19 +291,19 @@ export default class Bitjam extends Client {
 		}
 
 		logger.info("Slash command interactions loaded");
-    }
-    
-    private setButtonInteractions() {
-        const folder = path.join(__dirname, `./interactions/buttons`);
-        const names = fs.readdirSync(folder).filter(this.isFile);
+	}
 
-        for (const name of names) {
-            const data = require(path.join(folder, name)) as ButtonData;
-            this.buttonInteractions.set(data.id, data);
-        }
+	private setButtonInteractions() {
+		const folder = path.join(__dirname, `./interactions/buttons`);
+		const names = fs.readdirSync(folder).filter(this.isFile);
 
-        logger.info("Button interactions loaded");
-    }
+		for (const name of names) {
+			const data = require(path.join(folder, name)) as ButtonData;
+			this.buttonInteractions.set(data.id, data);
+		}
+
+		logger.info("Button interactions loaded");
+	}
 
 	private setSelectMenuInteractions() {
 		const folder = path.join(__dirname, `./interactions/select-menus`);
