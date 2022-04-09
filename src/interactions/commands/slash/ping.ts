@@ -10,7 +10,7 @@ const command: SlashCommandData = {
 
 	execute: async helper => {
 		await helper.respond(
-			new MessageEmbed().setAuthor({ name: `🕕 Pong! ${helper.cache.bot.ws.ping}ms` }).setColor("AQUA")
+			new MessageEmbed().setAuthor({ name: `🕕 Pong! ${helper.cache.client.ws.ping}ms` }).setColor("AQUA")
 		);
 	},
 };
