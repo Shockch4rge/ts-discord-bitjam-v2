@@ -1,4 +1,4 @@
-export namespace BitjamError {
+export namespace BitjamErrors {
 	abstract class BitjamError extends Error {
 		public override name = "UNKNOWN";
 		public override message = "There was an unknown error.";
@@ -37,6 +37,11 @@ export namespace BitjamError {
 	export class QueueIndexOutOfBoundsError extends BitjamError {
 		public override name = "QUEUE_INDEX_OUT_OF_BOUNDS";
 		public override message = "The index is out of bounds.";
+	}
+
+	export class TrackNotFoundError extends BitjamError {
+		public override name = "TRACK_NOT_FOUND";
+		public override message = "The track was not found in the queue.";
 	}
 	// #endregion
 
