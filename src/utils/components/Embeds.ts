@@ -3,7 +3,8 @@ import { MessageCommandBuilder, MessageCommandOptionChoiceable } from "djs-messa
 
 import { bold, formatEmoji, inlineCode } from "@discordjs/builders";
 
-import { QueueManager } from "../../app/QueueManager";
+import { Queue } from "../../app/Queue";
+import { Track } from "../../typings/track";
 import { Utils } from "../../utils/Utils";
 
 
@@ -11,6 +12,9 @@ export const Embeds = {
 	forGood: (title: string) => new MessageEmbed().setAuthor({ name: `✅  ${title}` }).setColor("GREEN"),
 
 	forBad: (title: string) => new MessageEmbed().setAuthor({ name: `❌  ${title}` }).setColor("RED"),
+
+	forHelpSelection: () =>
+		new MessageEmbed().setAuthor({ name: "🔎  Select a command type!" }).setColor("AQUA"),
 
 	forProperUsage: (builder: MessageCommandBuilder) => {
 		const embed = new MessageEmbed()
@@ -66,9 +70,9 @@ export const Embeds = {
 		return embed;
 	},
 
-	forQueue: (queue: QueueManager) => {
+	forQueue: (queue: Queue<Track>) => {
 		const embed = new MessageEmbed();
-		const length = queue.tracks.length;
+		const length = queue.length;
 		const currentTrack = queue.get(0);
 
 		if (length > 1) {
